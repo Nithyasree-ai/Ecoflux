@@ -206,3 +206,11 @@ export interface FacilitySolarProfile {
   peakKw: number;
   hourly: SolarTelemetry[];
 }
+
+export interface FacilityAtmosphericTelemetry {
+  ambientTemperature: string;
+  pvSurfaceTemperature: string;
+  solarArrayAzimuth: string;
+  tiltAngle: string;
+  bessAbsorptionRate: string;
+}

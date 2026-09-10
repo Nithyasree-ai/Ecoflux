@@ -1,4 +1,4 @@
-import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation, BuildingDemandDistribution, FacilitySolarProfile } from '../types';
+import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation, BuildingDemandDistribution, FacilitySolarProfile, FacilityAtmosphericTelemetry } from '../types';
 
 export const INITIAL_BUILDINGS: Building[] = [
   {
@@ -380,6 +380,66 @@ export const solarData: Record<string, SolarTelemetry[]> = {
   ADMIN: FACILITY_SOLAR_PROFILES['ADMIN'].hourly,
   'ADV-LAB': FACILITY_SOLAR_PROFILES['ADV-LAB'].hourly,
   CAFE: FACILITY_SOLAR_PROFILES['CAFE'].hourly
+};
+
+// Facility-specific Atmospheric & Inverter Telemetry
+export const telemetryData: Record<string, FacilityAtmosphericTelemetry> = {
+  ACAD: {
+    ambientTemperature: '29.2°C',
+    pvSurfaceTemperature: '41.8°C',
+    solarArrayAzimuth: '180° Due South',
+    tiltAngle: '22.5° Fixed',
+    bessAbsorptionRate: '15.4 kW directed'
+  },
+  'CS-LAB': {
+    ambientTemperature: '28.5°C',
+    pvSurfaceTemperature: '43.2°C',
+    solarArrayAzimuth: '175° South-Southeast',
+    tiltAngle: '20.0° Optimized',
+    bessAbsorptionRate: '18.2 kW directed'
+  },
+  LIB: {
+    ambientTemperature: '29.0°C',
+    pvSurfaceTemperature: '40.4°C',
+    solarArrayAzimuth: '185° South-Southwest',
+    tiltAngle: '22.0° Fixed',
+    bessAbsorptionRate: '10.8 kW directed'
+  },
+  'HOST-A': {
+    ambientTemperature: '30.1°C',
+    pvSurfaceTemperature: '44.0°C',
+    solarArrayAzimuth: '170° South-Southeast',
+    tiltAngle: '25.0° High-Tilt',
+    bessAbsorptionRate: '7.2 kW directed'
+  },
+  'HOST-B': {
+    ambientTemperature: '29.8°C',
+    pvSurfaceTemperature: '43.5°C',
+    solarArrayAzimuth: '172° South-Southeast',
+    tiltAngle: '24.5° Fixed',
+    bessAbsorptionRate: '8.1 kW directed'
+  },
+  ADMIN: {
+    ambientTemperature: '28.9°C',
+    pvSurfaceTemperature: '39.8°C',
+    solarArrayAzimuth: '180° Due South',
+    tiltAngle: '21.0° Low-Profile',
+    bessAbsorptionRate: '5.6 kW directed'
+  },
+  'ADV-LAB': {
+    ambientTemperature: '27.9°C',
+    pvSurfaceTemperature: '42.6°C',
+    solarArrayAzimuth: '178° Due South',
+    tiltAngle: '23.0° Fixed',
+    bessAbsorptionRate: '13.0 kW directed'
+  },
+  CAFE: {
+    ambientTemperature: '30.4°C',
+    pvSurfaceTemperature: '44.8°C',
+    solarArrayAzimuth: '182° South-Southwest',
+    tiltAngle: '19.5° Low-Pitch',
+    bessAbsorptionRate: '6.2 kW directed'
+  }
 };
 
 export const INITIAL_RECOMMENDATIONS: AIRecommendation[] = [

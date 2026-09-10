@@ -3,7 +3,7 @@ import { useEcoFlux } from '../lib/dataStore';
 import { BentoCard } from '../components/common/BentoCard';
 import { MetricBadge } from '../components/common/MetricBadge';
 import { SolarGenerationChart } from '../components/charts/SolarGenerationChart';
-import { FACILITY_SOLAR_PROFILES } from '../data/campusData';
+import { FACILITY_SOLAR_PROFILES, telemetryData } from '../data/campusData';
 import {
   Sun,
   CloudSun,
@@ -22,8 +22,9 @@ export const SolarGenerationPage: React.FC = () => {
   // Selected facility state - defaults to ACAD on dashboard load
   const [selectedFacility, setSelectedFacility] = useState<string>('ACAD');
 
-  // Active facility profile and structured facility list
+  // Active facility profile, telemetry, and structured facility list
   const activeFacility = FACILITY_SOLAR_PROFILES[selectedFacility] || FACILITY_SOLAR_PROFILES['ACAD'];
+  const activeTelemetry = telemetryData[selectedFacility] || telemetryData['ACAD'];
   const facilityList = Object.values(FACILITY_SOLAR_PROFILES);
   const totalSolarInstalled = buildings.reduce((acc, b) => acc + b.solarInstalledKw, 0);
 
@@ -123,32 +124,67 @@ export const SolarGenerationPage: React.FC = () => {
           <SolarGenerationChart facilityCode={selectedFacility} />
         </BentoCard>
 
-        {/* Weather & PV Diagnostics Card */}
+        {/* Weather & PV Diagnostics Card Connected to Selected Facility */}
         <BentoCard
           title="Atmospheric & Inverter Telemetry"
-          subtitle="Real-time rooftop sensor telemetry"
+          subtitle={`${activeFacility.facilityCode} – ${activeFacility.facilityName} • Real-time rooftop sensor telemetry`}
           icon={<CloudSun className="w-4 h-4 text-cyan-400" />}
+          action={
+            <span className="flex items-center gap-1.5 text-[10px] text-cyan-400 font-mono px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              Live Sensor Feed
+            </span>
+          }
         >
-          <div className="space-y-4 text-xs">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10">
-              <span className="text-slate-300">Ambient Temperature</span>
-              <span className="font-mono font-bold text-white">29.4°C</span>
+          <div className="space-y-3.5 text-xs" data-testid={`telemetry-panel-${selectedFacility.toLowerCase()}`}>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10 transition-all hover:border-cyan-500/30">
+              <div className="flex items-center gap-2">
+                <Thermometer className="w-4 h-4 text-slate-400" />
+                <span className="text-slate-300">Ambient Temperature</span>
+              </div>
+              <span className="font-mono font-bold text-white text-sm">
+                {activeTelemetry.ambientTemperature}
+              </span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10">
-              <span className="text-slate-300">PV Surface Temperature</span>
-              <span className="font-mono font-bold text-amber-300">42.1°C</span>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10 transition-all hover:border-amber-500/30">
+              <div className="flex items-center gap-2">
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span className="text-slate-300">PV Surface Temperature</span>
+              </div>
+              <span className="font-mono font-bold text-amber-300 text-sm">
+                {activeTelemetry.pvSurfaceTemperature}
+              </span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10">
-              <span className="text-slate-300">Solar Array Azimuth</span>
-              <span className="font-mono font-bold text-white">180° Due South</span>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10 transition-all hover:border-emerald-500/30">
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-emerald-400" />
+                <span className="text-slate-300">Solar Array Azimuth</span>
+              </div>
+              <span className="font-mono font-bold text-white text-sm">
+                {activeTelemetry.solarArrayAzimuth}
+              </span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10">
-              <span className="text-slate-300">Tilt Angle</span>
-              <span className="font-mono font-bold text-white">22.5° Fixed</span>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10 transition-all hover:border-cyan-500/30">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-cyan-400" />
+                <span className="text-slate-300">Tilt Angle</span>
+              </div>
+              <span className="font-mono font-bold text-white text-sm">
+                {activeTelemetry.tiltAngle}
+              </span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10">
-              <span className="text-slate-300">BESS Absorption Rate</span>
-              <span className="font-mono font-bold text-emerald-400">84.5 kW directed</span>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-emerald-500/10 transition-all hover:border-emerald-400/40">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-emerald-400" />
+                <span className="text-slate-300">BESS Absorption Rate</span>
+              </div>
+              <span className="font-mono font-bold text-emerald-400 text-sm">
+                {activeTelemetry.bessAbsorptionRate}
+              </span>
             </div>
           </div>
         </BentoCard>
