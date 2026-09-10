@@ -1,82 +1,233 @@
-import React from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, ReferenceLine, ReferenceArea } from 'recharts';
+import React, { useMemo } from 'react';
+import {
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  ZAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  ReferenceLine,
+  ReferenceArea
+} from 'recharts';
 import { useEcoFlux } from '../../lib/dataStore';
 import { FACILITY_HEATMAPS } from '../../data/campusData';
 
-export const OccupancyEnergyChart: React.FC = () => {
-  const { buildings, selectedFacility, setSelectedFacility } = useEcoFlux();
+interface OccupancyEnergyChartProps {
+  selectedFacility?: string;
+}
 
-  // Facility-level live points
-  const facilityPoints = buildings.map(b => {
-    const isSelected = selectedFacility !== 'ALL' && b.code === selectedFacility;
-    const headcount = b.currentOccupancy;
-    const energyPerPerson = headcount > 0 ? Number((b.currentDemandKw / headcount).toFixed(3)) : 0;
+export const OccupancyEnergyChart: React.FC<OccupancyEnergyChartProps> = ({ selectedFacility: propFacility }) => {
+  const context = useEcoFlux();
+  const selectedFacility = propFacility !== undefined ? propFacility : context.selectedFacility;
+  const setSelectedFacility = context.setSelectedFacility;
+  const buildings = context.buildings;
 
-    return {
-      name: b.name,
-      code: b.code,
-      occupancy: b.occupancyPct,
-      energy: b.currentDemandKw,
-      status: b.status,
-      headcount: b.currentOccupancy,
-      capacity: b.designedOccupancy,
-      energyPerPerson,
-      isSelected,
-      isFacilityPoint: true
-    };
-  });
+  // Facility-level live points directly dependent on selectedFacility and buildings
+  const facilityPoints = useMemo(() => {
+    return buildings.map(b => {
+      const isSelected = selectedFacility !== 'ALL' && b.code === selectedFacility;
+      const headcount = b.currentOccupancy;
+      const energyPerPerson = headcount > 0 ? Number((b.currentDemandKw / headcount).toFixed(3)) : 0;
+
+      return {
+        name: b.name,
+        code: b.code,
+        occupancy: b.occupancyPct,
+        energy: b.currentDemandKw,
+        status: b.status,
+        headcount: b.currentOccupancy,
+        capacity: b.designedOccupancy,
+        energyPerPerson,
+        isSelected
+      };
+    });
+  }, [selectedFacility, buildings]);
+
+  const selectedPoint = useMemo(() => {
+    if (selectedFacility === 'ALL') return null;
+    return facilityPoints.find(f => f.code === selectedFacility) || null;
+  }, [selectedFacility, facilityPoints]);
 
   // If a specific facility is selected, load its operating period trajectory points
-  const operatingPoints = selectedFacility !== 'ALL' && FACILITY_HEATMAPS[selectedFacility]
-    ? FACILITY_HEATMAPS[selectedFacility].map((p, idx) => {
-        const matchingBuilding = buildings.find(b => b.code === selectedFacility);
-        const approxHeadcount = Math.round(((matchingBuilding?.designedOccupancy || 300) * p.occupancyPct) / 100);
-        const epp = approxHeadcount > 0 ? Number((p.demandKw / approxHeadcount).toFixed(3)) : 0;
+  const operatingPoints = useMemo(() => {
+    if (selectedFacility === 'ALL' || !FACILITY_HEATMAPS[selectedFacility]) {
+      return [];
+    }
+    const matchingBuilding = buildings.find(b => b.code === selectedFacility);
+    return FACILITY_HEATMAPS[selectedFacility].map((p) => {
+      const approxHeadcount = Math.round(((matchingBuilding?.designedOccupancy || 300) * p.occupancyPct) / 100);
+      const epp = approxHeadcount > 0 ? Number((p.demandKw / approxHeadcount).toFixed(3)) : 0;
 
-        return {
-          name: `${matchingBuilding?.name || selectedFacility} (${p.label})`,
-          code: selectedFacility,
-          periodLabel: p.label,
-          timeRange: p.period,
-          occupancy: p.occupancyPct,
-          energy: p.demandKw,
-          status: p.status === 'anomaly' ? 'warning' : p.status === 'high-utilization' ? 'optimal' : 'normal',
-          statusText: p.statusLabel,
-          headcount: approxHeadcount,
-          capacity: matchingBuilding?.designedOccupancy || 300,
-          energyPerPerson: epp,
-          notes: p.notes,
-          isSelected: false,
-          isOperatingPeriod: true
-        };
-      })
-    : [];
+      return {
+        name: `${matchingBuilding?.name || selectedFacility} (${p.label})`,
+        code: selectedFacility,
+        periodLabel: p.label,
+        timeRange: p.period,
+        occupancy: p.occupancyPct,
+        energy: p.demandKw,
+        status: p.status === 'anomaly' ? 'warning' : p.status === 'high-utilization' ? 'optimal' : 'normal',
+        statusText: p.statusLabel,
+        headcount: approxHeadcount,
+        capacity: matchingBuilding?.designedOccupancy || 300,
+        energyPerPerson: epp,
+        notes: p.notes
+      };
+    });
+  }, [selectedFacility, buildings]);
 
-  const selectedBuildingData = facilityPoints.find(f => f.code === selectedFacility);
+  // Custom SVG shape for rendering all facility points with dynamic highlight on selected node
+  const renderFacilityShape = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (typeof cx !== 'number' || typeof cy !== 'number' || isNaN(cx) || isNaN(cy) || !payload) {
+      return <g />;
+    }
+
+    const isSelected = selectedFacility !== 'ALL' && payload.code === selectedFacility;
+    const isAnomaly = payload.status === 'warning' || payload.status === 'alert';
+    const isAll = selectedFacility === 'ALL';
+
+    if (isSelected) {
+      const haloFill = isAnomaly ? 'rgba(244, 63, 94, 0.22)' : 'rgba(16, 185, 129, 0.22)';
+      const strokeColor = isAnomaly ? '#f43f5e' : '#10b981';
+      const coreColor = isAnomaly ? '#fb7185' : '#34d399';
+      const labelText = `${payload.code}: ${payload.occupancy}% • ${payload.energy} kW`;
+      const badgeWidth = Math.max(115, labelText.length * 6.5 + 16);
+
+      return (
+        <g key={`highlighted-node-${payload.code}`}>
+          {/* Outer Pulsing Radar Ring */}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={24}
+            fill={haloFill}
+            stroke={strokeColor}
+            strokeWidth={1.8}
+            strokeDasharray="3 3"
+          />
+          {/* Secondary Intense Glow Ring */}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={14}
+            fill={isAnomaly ? 'rgba(244, 63, 94, 0.45)' : 'rgba(16, 185, 129, 0.45)'}
+            stroke={strokeColor}
+            strokeWidth={2}
+          />
+          {/* Inner Solid Core */}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={8}
+            fill={coreColor}
+            stroke="#ffffff"
+            strokeWidth={2.5}
+          />
+          {/* Floating Callout Badge */}
+          <g>
+            <rect
+              x={cx + 12}
+              y={cy - 24}
+              width={badgeWidth}
+              height={20}
+              rx={5}
+              fill="#050e0a"
+              stroke={strokeColor}
+              strokeWidth={1.5}
+            />
+            <text
+              x={cx + 18}
+              y={cy - 10}
+              fill="#ffffff"
+              fontSize={10}
+              fontFamily="monospace"
+              fontWeight="bold"
+            >
+              {labelText}
+            </text>
+          </g>
+        </g>
+      );
+    }
+
+    // Non-selected point (de-emphasized when a facility is selected)
+    const baseColor = isAnomaly ? '#f43f5e' : payload.occupancy > 75 ? '#10b981' : '#38bdf8';
+    const opacity = isAll ? 0.95 : 0.28;
+    const radius = isAll ? 7 : 5;
+
+    return (
+      <g key={`facility-node-${payload.code}`}>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={radius}
+          fill={baseColor}
+          fillOpacity={opacity}
+          stroke={isAnomaly ? '#fda4af' : '#ffffff'}
+          strokeWidth={isAll ? 1.5 : 0.8}
+          strokeOpacity={opacity}
+        />
+        {isAll && (
+          <text
+            x={cx}
+            y={cy - 10}
+            textAnchor="middle"
+            fill="#94a3b8"
+            fontSize={9}
+            fontFamily="monospace"
+          >
+            {payload.code}
+          </text>
+        )}
+      </g>
+    );
+  };
 
   return (
     <div className="w-full h-full flex flex-col justify-between" data-testid="occupancy-energy-correlation-chart">
-      {/* Chart Subtitle Indicator Bar */}
-      <div className="flex items-center justify-between pb-2 text-xs font-mono">
-        <span className="text-slate-400">
-          Mode: <strong className={selectedFacility === 'ALL' ? 'text-cyan-400' : 'text-emerald-400'}>
-            {selectedFacility === 'ALL' ? 'Campus Overview (All 8 Facilities)' : `${selectedFacility} Focus & Operating Trajectory`}
+      {/* Real-time Focus Header with Coordinate Readout */}
+      <div className="p-3 mb-3 rounded-xl bg-[#07130e] border border-emerald-500/25 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div className="flex items-center gap-2">
+          <span className={`w-3 h-3 rounded-full ${selectedPoint?.status === 'warning' ? 'bg-rose-500 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
+          <span className="text-slate-400">Plotted Facility:</span>
+          <strong className="text-white text-sm font-bold">
+            {selectedPoint ? `${selectedPoint.code} – ${selectedPoint.name}` : 'Campus Overview (All 8 Facilities)'}
           </strong>
-        </span>
-        {selectedFacility !== 'ALL' && (
-          <button
-            type="button"
-            onClick={() => setSelectedFacility('ALL')}
-            className="text-[11px] text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
-          >
-            ← Reset to All Facilities
-          </button>
+        </div>
+
+        {selectedPoint ? (
+          <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+            <span>
+              X (Occupancy): <strong className="text-cyan-300 text-sm">{selectedPoint.occupancy}%</strong>
+            </span>
+            <span>
+              Y (Power Draw): <strong className={`text-sm ${selectedPoint.status === 'warning' ? 'text-rose-400' : 'text-emerald-400'}`}>{selectedPoint.energy} kW</strong>
+            </span>
+            <span>
+              Energy/Capita: <strong className="text-white text-sm">{selectedPoint.energyPerPerson} kW</strong>
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedFacility('ALL')}
+              className="text-[11px] text-cyan-400 hover:text-cyan-300 underline cursor-pointer ml-1"
+            >
+              Reset to All
+            </button>
+          </div>
+        ) : (
+          <span className="text-slate-400 text-xs">Click any facility card below to highlight and focus its coordinates</span>
         )}
       </div>
 
+      {/* Main Scatter Graph */}
       <div className="h-64 sm:h-72 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 15, right: 20, left: -15, bottom: 5 }}>
+          <ScatterChart
+            key={`scatter-chart-${selectedFacility}`}
+            margin={{ top: 15, right: 25, left: -15, bottom: 5 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(16, 185, 129, 0.08)" />
 
             {/* Waste Anomaly Zone Shading (Low occupancy <= 40%, High power >= 60 kW) */}
@@ -89,6 +240,38 @@ export const OccupancyEnergyChart: React.FC = () => {
               stroke="rgba(244, 63, 94, 0.2)"
               strokeDasharray="4 4"
             />
+
+            {/* Dynamic Crosshair Reference Lines for the Selected Facility */}
+            {selectedPoint && (
+              <>
+                <ReferenceLine
+                  x={selectedPoint.occupancy}
+                  stroke={selectedPoint.status === 'warning' ? '#f43f5e' : '#34d399'}
+                  strokeDasharray="3 3"
+                  strokeWidth={1.5}
+                  label={{
+                    value: `X: ${selectedPoint.occupancy}%`,
+                    fill: selectedPoint.status === 'warning' ? '#f43f5e' : '#34d399',
+                    position: 'top',
+                    fontSize: 11,
+                    fontWeight: 'bold'
+                  }}
+                />
+                <ReferenceLine
+                  y={selectedPoint.energy}
+                  stroke={selectedPoint.status === 'warning' ? '#f43f5e' : '#34d399'}
+                  strokeDasharray="3 3"
+                  strokeWidth={1.5}
+                  label={{
+                    value: `Y: ${selectedPoint.energy} kW`,
+                    fill: selectedPoint.status === 'warning' ? '#f43f5e' : '#34d399',
+                    position: 'right',
+                    fontSize: 11,
+                    fontWeight: 'bold'
+                  }}
+                />
+              </>
+            )}
 
             <XAxis
               type="number"
@@ -108,7 +291,7 @@ export const OccupancyEnergyChart: React.FC = () => {
               domain={[0, 150]}
               tick={{ fill: '#94a3b8', fontSize: 11 }}
             />
-            <ZAxis range={[120, 320]} />
+            <ZAxis range={[120, 200]} />
 
             <Tooltip
               cursor={{ strokeDasharray: '3 3' }}
@@ -124,7 +307,7 @@ export const OccupancyEnergyChart: React.FC = () => {
                         <span className="font-mono text-emerald-400 font-bold">{d.code}</span>
                       </div>
 
-                      {d.isOperatingPeriod && (
+                      {d.periodLabel && (
                         <div className="text-[11px] font-mono text-cyan-300">
                           Period: {d.periodLabel} ({d.timeRange})
                         </div>
@@ -175,60 +358,34 @@ export const OccupancyEnergyChart: React.FC = () => {
               }}
             />
 
-            {/* Operating period trajectory nodes (when a specific facility is selected) */}
+            {/* Diurnal trajectory nodes (when a specific facility is selected) */}
             {operatingPoints.length > 0 && (
               <Scatter
-                name="Operating Periods"
+                key={`operating-scatter-${selectedFacility}`}
+                name="Diurnal Trajectory"
                 data={operatingPoints}
                 shape="diamond"
-              >
-                {operatingPoints.map((entry, idx) => (
-                  <Cell
-                    key={`period-cell-${idx}`}
-                    fill={entry.status === 'warning' ? '#f43f5e' : entry.occupancy > 70 ? '#38bdf8' : '#10b981'}
-                    opacity={0.8}
-                    stroke="#ffffff"
-                    strokeWidth={1.5}
-                  />
-                ))}
-              </Scatter>
+                fill="#38bdf8"
+                opacity={0.8}
+              />
             )}
 
-            {/* Main Facility Nodes */}
+            {/* All 8 Facilities Scatter Series with Dynamic Shape Highlighting */}
             <Scatter
+              key={`facilities-scatter-${selectedFacility}`}
               name="Facilities"
               data={facilityPoints}
+              shape={renderFacilityShape}
               onClick={(entry) => {
                 if (entry && entry.code) setSelectedFacility(entry.code);
               }}
               cursor="pointer"
-            >
-              {facilityPoints.map((entry, index) => {
-                const isSelected = selectedFacility !== 'ALL' && entry.code === selectedFacility;
-                const isAnomaly = entry.status === 'warning';
-                const opacity = selectedFacility === 'ALL' || isSelected ? 1 : 0.25;
-
-                let fill = isAnomaly ? '#f43f5e' : entry.occupancy > 70 ? '#10b981' : '#38bdf8';
-                if (isSelected) {
-                  fill = isAnomaly ? '#fb7185' : '#34d399';
-                }
-
-                return (
-                  <Cell
-                    key={`facility-cell-${index}`}
-                    fill={fill}
-                    opacity={opacity}
-                    stroke={isSelected ? '#ffffff' : isAnomaly ? '#fda4af' : 'transparent'}
-                    strokeWidth={isSelected ? 3 : isAnomaly ? 1.5 : 0}
-                  />
-                );
-              })}
-            </Scatter>
+            />
           </ScatterChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Legend & Telemetry Readout */}
+      {/* Legend & Summary Readout */}
       <div className="flex flex-wrap items-center justify-between pt-2 border-t border-emerald-500/10 text-xs text-slate-400 gap-2">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
@@ -246,15 +403,15 @@ export const OccupancyEnergyChart: React.FC = () => {
           {selectedFacility !== 'ALL' && (
             <span className="flex items-center gap-1 text-cyan-300">
               <span className="w-2.5 h-2.5 rotate-45 bg-cyan-400 inline-block" />
-              <span>Operating Schedule</span>
+              <span>Diurnal Trajectory (6 Periods)</span>
             </span>
           )}
         </div>
 
         <div>
-          {selectedBuildingData ? (
+          {selectedPoint ? (
             <span className="font-mono text-slate-300">
-              {selectedBuildingData.name}: <strong className="text-white">{selectedBuildingData.occupancy}%</strong> @ <strong className={selectedBuildingData.status === 'warning' ? 'text-rose-400' : 'text-emerald-400'}>{selectedBuildingData.energy} kW</strong> ({selectedBuildingData.energyPerPerson} kW/cap)
+              Active Focus: <strong className="text-white">{selectedPoint.name}</strong> • X: <strong className="text-cyan-300">{selectedPoint.occupancy}%</strong> • Y: <strong className={selectedPoint.status === 'warning' ? 'text-rose-400' : 'text-emerald-400'}>{selectedPoint.energy} kW</strong>
             </span>
           ) : (
             <span className="text-rose-400 font-mono">1 Anomaly flagged: Hostel Block A (29.5% occ @ 71.4 kW)</span>
@@ -264,3 +421,4 @@ export const OccupancyEnergyChart: React.FC = () => {
     </div>
   );
 };
+

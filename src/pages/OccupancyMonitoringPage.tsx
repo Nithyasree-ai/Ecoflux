@@ -270,7 +270,10 @@ export const OccupancyMonitoringPage: React.FC = () => {
         subtitle="Scatter distribution mapping real-time kW draw against headcount %"
         icon={<Users className="w-4 h-4 text-emerald-400" />}
       >
-        <OccupancyEnergyChart />
+        <OccupancyEnergyChart
+          selectedFacility={selectedFacility}
+          key={`occupancy-scatter-${selectedFacility}`}
+        />
       </BentoCard>
 
       {/* Building Occupancy Deep-Dive & Heatmap Correlator */}
@@ -283,7 +286,11 @@ export const OccupancyMonitoringPage: React.FC = () => {
           icon={<Building2 className="w-4 h-4 text-cyan-400" />}
           className="lg:col-span-1"
         >
-          <div className="space-y-4 text-xs" data-testid="building-occupancy-breakdown">
+          <div
+            key={`building-occupancy-breakdown-${selectedFacility}`}
+            className="space-y-4 text-xs animate-in fade-in duration-200"
+            data-testid="building-occupancy-breakdown"
+          >
             <div className="p-3.5 rounded-xl bg-black/40 border border-emerald-500/15">
               <span className="text-slate-400 text-[11px] block">Selected Facility</span>
               <strong className="text-white text-base block mt-0.5 font-mono">
@@ -362,7 +369,11 @@ export const OccupancyMonitoringPage: React.FC = () => {
           icon={<Activity className="w-4 h-4 text-emerald-400" />}
           className="lg:col-span-2"
         >
-          <div className="space-y-3" data-testid="heatmap-correlator-container">
+          <div
+            key={`heatmap-correlator-container-${selectedFacility}`}
+            className="space-y-3 animate-in fade-in duration-200"
+            data-testid="heatmap-correlator-container"
+          >
             {/* 6 Operating Period Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {activeHeatmapSchedule.map((period, idx) => {
@@ -372,7 +383,7 @@ export const OccupancyMonitoringPage: React.FC = () => {
 
                 return (
                   <div
-                    key={`heatmap-slot-${idx}`}
+                    key={`heatmap-slot-${selectedFacility}-${idx}`}
                     className={`p-3.5 rounded-xl border transition-all ${
                       isPeriodAnomaly
                         ? 'bg-rose-950/30 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.15)]'
@@ -424,23 +435,39 @@ export const OccupancyMonitoringPage: React.FC = () => {
               })}
             </div>
 
-            {/* Heatmap Correlation Legend */}
+            {/* Heatmap Correlation Legend & Dynamic Diagnostic Rule Matching */}
             <div className="p-3 rounded-xl bg-black/40 border border-emerald-500/10 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-400">
               <span className="font-semibold text-slate-300">Correlation Diagnostic Rules:</span>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="flex items-center gap-1 text-rose-400">
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all ${
+                  displayOccupancy <= 40 && displayPowerDraw >= 60
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold'
+                    : 'text-rose-400/80'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full bg-rose-500 ${displayOccupancy <= 40 && displayPowerDraw >= 60 ? 'animate-ping' : ''}`} />
                   <span>Low Occ + High Power: Idle Waste / Anomaly</span>
                 </span>
-                <span className="flex items-center gap-1 text-cyan-400">
+                <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all ${
+                  displayOccupancy >= 70 && displayPowerDraw >= 60
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
+                    : 'text-cyan-400/80'
+                }`}>
                   <span className="w-2 h-2 rounded-full bg-cyan-400" />
                   <span>High Occ + High Power: Normal High Utilization</span>
                 </span>
-                <span className="flex items-center gap-1 text-emerald-400">
+                <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all ${
+                  displayOccupancy >= 70 && displayPowerDraw < 60
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold'
+                    : 'text-emerald-400/80'
+                }`}>
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   <span>High Occ + Low Power: Efficient Operation</span>
                 </span>
-                <span className="flex items-center gap-1 text-slate-400">
+                <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all ${
+                  displayOccupancy < 70 && displayPowerDraw < 60 && !(displayOccupancy <= 40 && displayPowerDraw >= 60)
+                    ? 'bg-slate-700/30 text-slate-200 border border-slate-600/40 font-bold'
+                    : 'text-slate-400/80'
+                }`}>
                   <span className="w-2 h-2 rounded-full bg-slate-500" />
                   <span>Low Occ + Low Power: Normal Low-Use</span>
                 </span>
