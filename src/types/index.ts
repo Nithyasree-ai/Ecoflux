@@ -63,12 +63,17 @@ export interface BatteryState {
   currentStoredKwh: number;
   flowRateKw: number; // Positive = charging, negative = discharging
   operatingMode: 'charging' | 'discharging' | 'idle';
+  dispatchMode: 'CHARGE' | 'DISCHARGE' | 'AUTO';
+  status: 'CHARGING' | 'DISCHARGING' | 'IDLE' | 'STANDBY';
+  cellPackStatus: 'NORMAL' | 'WARNING' | 'CRITICAL';
+  aiDecisionTitle: string;
   aiDecisionReason: string;
   cellHealthPct: number;
   cellTempC: number;
   estimatedBackupHours: number;
   cyclesCompleted: number;
   lastUpdated: string;
+  protectionWarning?: string;
 }
 
 export interface OccupancyTelemetry {

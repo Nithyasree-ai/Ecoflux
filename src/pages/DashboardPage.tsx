@@ -98,7 +98,7 @@ export const DashboardPage: React.FC = () => {
           label="Battery Level"
           value={battery.stateOfChargePct.toFixed(1)}
           unit="%"
-          subtext={`${battery.currentStoredKwh} kWh • Charging`}
+          subtext={`${battery.currentStoredKwh.toFixed(1)} kWh • ${battery.status}`}
           icon={BatteryCharging}
           variant="cyan"
         />

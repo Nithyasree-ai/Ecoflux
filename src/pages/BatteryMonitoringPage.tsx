@@ -36,8 +36,14 @@ export const BatteryMonitoringPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-bold">
-            ● CELL PACK STATUS: OPTIMAL
+          <span className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold border transition-all ${
+            battery.cellPackStatus === 'CRITICAL'
+              ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
+              : battery.cellPackStatus === 'WARNING'
+              ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 animate-pulse'
+              : 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400'
+          }`}>
+            ● CELL PACK STATUS: {battery.cellPackStatus || 'NORMAL'}
           </span>
         </div>
       </div>
@@ -45,19 +51,19 @@ export const BatteryMonitoringPage: React.FC = () => {
       {/* Large Animated Battery Visualizer with Liquid Fluid & Decision Logic */}
       <BatteryVisualizer expanded={true} />
 
-      {/* KPI Row */}
+      {/* KPI Row Connected to Central BESS State */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <MetricBadge
           label="State of Charge"
           value={battery.stateOfChargePct.toFixed(1)}
           unit="%"
-          subtext="Target: 95% by 4 PM"
+          subtext={`Target: 95% (${battery.status})`}
           icon={BatteryCharging}
           variant="cyan"
         />
         <MetricBadge
           label="Stored Energy"
-          value={battery.currentStoredKwh}
+          value={battery.currentStoredKwh.toFixed(1)}
           unit="kWh"
           subtext={`of ${battery.capacityKwh} kWh total`}
           icon={Zap}
@@ -67,13 +73,13 @@ export const BatteryMonitoringPage: React.FC = () => {
           label="Active Flow"
           value={battery.flowRateKw > 0 ? `+${battery.flowRateKw}` : battery.flowRateKw}
           unit="kW"
-          subtext={battery.operatingMode.toUpperCase()}
+          subtext={battery.status}
           icon={Zap}
-          variant="emerald"
+          variant={battery.operatingMode === 'charging' ? 'emerald' : battery.operatingMode === 'discharging' ? 'amber' : 'cyan'}
         />
         <MetricBadge
           label="Emergency Backup"
-          value={battery.estimatedBackupHours}
+          value={battery.estimatedBackupHours.toFixed(1)}
           unit="hrs"
           subtext="under base load"
           icon={Clock}
@@ -89,7 +95,7 @@ export const BatteryMonitoringPage: React.FC = () => {
         />
         <MetricBadge
           label="Pack Temperature"
-          value={battery.cellTempC}
+          value={battery.cellTempC.toFixed(1)}
           unit="°C"
           subtext="Liquid cooled"
           icon={Thermometer}
@@ -108,36 +114,60 @@ export const BatteryMonitoringPage: React.FC = () => {
           className="lg:col-span-2"
         >
           <div className="space-y-4 text-xs">
-            <div className="p-4 rounded-xl bg-black/40 border border-emerald-500/15 flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div className={`p-4 rounded-xl border transition-all ${
+              battery.operatingMode === 'charging'
+                ? 'bg-emerald-500/15 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                : 'bg-black/40 border-emerald-500/15'
+            } flex items-start gap-3`}>
+              <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${battery.operatingMode === 'charging' ? 'text-emerald-300' : 'text-emerald-400'}`} />
               <div>
                 <span className="font-bold text-white block">Rule 1: Solar Surplus Ingestion</span>
                 <p className="text-slate-400 mt-0.5">
                   IF (Solar Generation &gt; Demand OR Generation &gt; 250 kW) AND SoC &lt; 95% ➔ Engage Charging at max 90 kW rating to capture clean surplus.
                 </p>
-                <span className="text-[10px] text-emerald-400 font-mono font-bold mt-1 inline-block">STATUS: CONDITION ACTIVE (CHARGING)</span>
+                <span className={`text-[10px] font-mono font-bold mt-1 inline-block ${
+                  battery.operatingMode === 'charging' ? 'text-emerald-300 animate-pulse' : 'text-slate-500'
+                }`}>
+                  STATUS: {battery.operatingMode === 'charging' ? 'CONDITION ACTIVE (CHARGING +85 kW)' : 'STANDBY'}
+                </span>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-black/40 border border-emerald-500/15 flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className={`p-4 rounded-xl border transition-all ${
+              battery.operatingMode === 'discharging'
+                ? 'bg-amber-500/15 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                : 'bg-black/40 border-emerald-500/15'
+            } flex items-start gap-3`}>
+              <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${battery.operatingMode === 'discharging' ? 'text-amber-300' : 'text-amber-400'}`} />
               <div>
                 <span className="font-bold text-white block">Rule 2: Peak Demand Shaving (5 PM - 8 PM)</span>
                 <p className="text-slate-400 mt-0.5">
                   IF (Predicted Demand &gt; 480 kW AND Grid Tariff Peak Active) ➔ Discharge BESS at 85 kW to clip utility demand surcharge.
                 </p>
-                <span className="text-[10px] text-slate-400 font-mono mt-1 inline-block">STATUS: ARMED FOR 5:30 PM DISPATCH</span>
+                <span className={`text-[10px] font-mono font-bold mt-1 inline-block ${
+                  battery.operatingMode === 'discharging' ? 'text-amber-300 animate-pulse' : 'text-slate-500'
+                }`}>
+                  STATUS: {battery.operatingMode === 'discharging' ? 'CONDITION ACTIVE (DISCHARGING -88 kW)' : 'ARMED FOR 5:30 PM DISPATCH'}
+                </span>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-black/40 border border-emerald-500/15 flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div className={`p-4 rounded-xl border transition-all ${
+              battery.stateOfChargePct <= 20
+                ? 'bg-rose-500/15 border-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+                : 'bg-black/40 border-emerald-500/15'
+            } flex items-start gap-3`}>
+              <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${battery.stateOfChargePct <= 20 ? 'text-rose-400' : 'text-cyan-400'}`} />
               <div>
                 <span className="font-bold text-white block">Rule 3: Critical Reserve Protection</span>
                 <p className="text-slate-400 mt-0.5">
                   IF (SoC ≤ 20%) ➔ Force BESS Idle to maintain emergency reserve for Computer Science servers & biomedical cold storage.
                 </p>
-                <span className="text-[10px] text-slate-400 font-mono mt-1 inline-block">STATUS: SAFE (78.5% SOC)</span>
+                <span className={`text-[10px] font-mono font-bold mt-1 inline-block ${
+                  battery.stateOfChargePct <= 20 ? 'text-rose-400 animate-pulse' : 'text-cyan-400'
+                }`}>
+                  STATUS: {battery.stateOfChargePct <= 20 ? 'ALERT: CRITICAL RESERVE LOCK ACTIVE' : `SAFE (${battery.stateOfChargePct.toFixed(1)}% SOC)`}
+                </span>
               </div>
             </div>
           </div>

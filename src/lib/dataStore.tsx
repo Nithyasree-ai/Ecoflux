@@ -67,6 +67,7 @@ interface EcoFluxContextType {
   sendCopilotQuery: (query: string) => void;
   updateCampusSettings: (newSettings: Partial<CampusSettings>) => void;
   setBatteryModeOverride: (mode: 'charging' | 'discharging' | 'idle') => void;
+  setBessDispatchMode: (mode: 'CHARGE' | 'DISCHARGE' | 'AUTO') => void;
   runSimulationScenario: (params: SimulationParams) => SimulationResult;
 
   // UI
@@ -321,15 +322,250 @@ export const EcoFluxProvider: React.FC<{ children: ReactNode }> = ({ children })
     addToast('success', 'Settings Saved', 'Campus configuration parameters successfully updated.');
   };
 
-  const setBatteryModeOverride = (mode: 'charging' | 'discharging' | 'idle') => {
-    setBattery(prev => ({
-      ...prev,
-      operatingMode: mode,
-      flowRateKw: mode === 'charging' ? 84.5 : mode === 'discharging' ? -92.0 : 0,
-      aiDecisionReason: `Manual override engaged by Campus Operator: Mode set to ${mode.toUpperCase()}.`
-    }));
-    addToast('info', 'Battery Dispatch Updated', `BESS operating state switched to ${mode.toUpperCase()}.`);
+  const computeCellPackStatus = (soc: number, temp: number, health: number): 'NORMAL' | 'WARNING' | 'CRITICAL' => {
+    if (temp > 45 || health < 80 || soc < 10) return 'CRITICAL';
+    if (temp > 35 || health < 90 || soc <= 20) return 'WARNING';
+    return 'NORMAL';
   };
+
+  const setBessDispatchMode = (mode: 'CHARGE' | 'DISCHARGE' | 'AUTO') => {
+    setBattery(prev => {
+      if (mode === 'CHARGE') {
+        if (prev.stateOfChargePct >= 95.0) {
+          addToast('warning', 'BESS Protection Active', 'SoC is already at 95% safety ceiling. Standby engaged.');
+          return {
+            ...prev,
+            dispatchMode: 'CHARGE',
+            operatingMode: 'idle',
+            status: 'STANDBY',
+            flowRateKw: 0,
+            protectionWarning: 'Target 95% SoC reached — charging suspended to prevent cell overvoltage',
+            aiDecisionTitle: 'Charge Target Reached (95%)',
+            aiDecisionReason: 'Battery SoC is at 95% target. Further charging suspended to preserve cell life.',
+            cellPackStatus: computeCellPackStatus(prev.stateOfChargePct, prev.cellTempC, prev.cellHealthPct)
+          };
+        }
+        if (prev.cellTempC > 45) {
+          addToast('alert', 'Thermal Protection Active', 'Pack temperature too high for charging. Standby enforced.');
+          return {
+            ...prev,
+            dispatchMode: 'CHARGE',
+            operatingMode: 'idle',
+            status: 'STANDBY',
+            flowRateKw: 0,
+            protectionWarning: 'High pack temperature detected — thermal protection engaged',
+            aiDecisionTitle: 'Thermal Protection Active',
+            aiDecisionReason: 'Pack temperature exceeds safe limit (45°C). Charging throttled until liquid cooling normalizes.',
+            cellPackStatus: 'CRITICAL'
+          };
+        }
+        addToast('success', 'BESS: Charge Mode Engaged', 'Battery is now absorbing clean solar surplus at +85 kW.');
+        return {
+          ...prev,
+          dispatchMode: 'CHARGE',
+          operatingMode: 'charging',
+          status: 'CHARGING',
+          flowRateKw: 85.0,
+          protectionWarning: undefined,
+          aiDecisionTitle: 'Charging from Solar Surplus',
+          aiDecisionReason: 'Operator dispatch engaged: absorbing clean solar surplus into BESS buffer at +85 kW rate.',
+          cellPackStatus: computeCellPackStatus(prev.stateOfChargePct, prev.cellTempC, prev.cellHealthPct)
+        };
+      }
+
+      if (mode === 'DISCHARGE') {
+        if (prev.stateOfChargePct <= 10.0) {
+          addToast('alert', 'Emergency Reserve Active', 'Emergency reserve threshold (10%) active. Discharge locked.');
+          return {
+            ...prev,
+            dispatchMode: 'DISCHARGE',
+            operatingMode: 'idle',
+            status: 'STANDBY',
+            flowRateKw: 0,
+            protectionWarning: 'Emergency reserve protection active',
+            aiDecisionTitle: 'Emergency Reserve Protection Active',
+            aiDecisionReason: 'Critical reserve threshold (10%) active. BESS locked in standby to protect mission-critical loads.',
+            cellPackStatus: 'CRITICAL'
+          };
+        }
+        if (prev.stateOfChargePct <= 20.0) {
+          addToast('warning', 'BESS Protection Active', 'Low SOC (<=20%) — discharge limited to preserve emergency backup.');
+          return {
+            ...prev,
+            dispatchMode: 'DISCHARGE',
+            operatingMode: 'idle',
+            status: 'STANDBY',
+            flowRateKw: 0,
+            protectionWarning: 'Low SOC — discharge limited',
+            aiDecisionTitle: 'Critical Reserve Protection Active',
+            aiDecisionReason: 'Low SOC (<=20%) — discharge limited to preserve emergency backup for critical facilities.',
+            cellPackStatus: computeCellPackStatus(prev.stateOfChargePct, prev.cellTempC, prev.cellHealthPct)
+          };
+        }
+        if (prev.cellTempC > 45) {
+          addToast('alert', 'Thermal Protection Active', 'Pack temperature too high for discharge. Standby enforced.');
+          return {
+            ...prev,
+            dispatchMode: 'DISCHARGE',
+            operatingMode: 'idle',
+            status: 'STANDBY',
+            flowRateKw: 0,
+            protectionWarning: 'High pack temperature detected — thermal protection engaged',
+            aiDecisionTitle: 'Thermal Protection Active',
+            aiDecisionReason: 'Pack temperature exceeds safe limit (45°C). Discharge throttled until liquid cooling normalizes.',
+            cellPackStatus: 'CRITICAL'
+          };
+        }
+        addToast('success', 'BESS: Discharge Mode Engaged', 'Battery is now injecting -88 kW to shave peak utility demand.');
+        return {
+          ...prev,
+          dispatchMode: 'DISCHARGE',
+          operatingMode: 'discharging',
+          status: 'DISCHARGING',
+          flowRateKw: -88.0,
+          protectionWarning: undefined,
+          aiDecisionTitle: 'Peak Demand Load Shaving',
+          aiDecisionReason: 'Operator dispatch engaged: injecting 88 kW from BESS to clip utility peak demand surcharge.',
+          cellPackStatus: computeCellPackStatus(prev.stateOfChargePct, prev.cellTempC, prev.cellHealthPct)
+        };
+      }
+
+      // AUTO Mode
+      addToast('info', 'BESS: Auto / Standby Mode', 'Battery returned to autonomous microgrid management.');
+      return {
+        ...prev,
+        dispatchMode: 'AUTO',
+        operatingMode: 'idle',
+        status: 'IDLE',
+        flowRateKw: 0,
+        protectionWarning: undefined,
+        aiDecisionTitle: 'Battery Standby / Auto Reserve',
+        aiDecisionReason: 'Autonomous dispatch algorithm active. Monitoring grid tariffs, solar output (318 kW), and building demand.',
+        cellPackStatus: computeCellPackStatus(prev.stateOfChargePct, prev.cellTempC, prev.cellHealthPct)
+      };
+    });
+  };
+
+  const setBatteryModeOverride = (mode: 'charging' | 'discharging' | 'idle') => {
+    if (mode === 'charging') setBessDispatchMode('CHARGE');
+    else if (mode === 'discharging') setBessDispatchMode('DISCHARGE');
+    else setBessDispatchMode('AUTO');
+  };
+
+  // Active BESS continuous simulation loop (runs smoothly every 2.5s)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setBattery(prev => {
+        // 1. If CHARGE mode is active
+        if (prev.dispatchMode === 'CHARGE' && prev.operatingMode === 'charging') {
+          if (prev.stateOfChargePct >= 95.0) {
+            return {
+              ...prev,
+              stateOfChargePct: 95.0,
+              currentStoredKwh: 1140.0,
+              operatingMode: 'idle',
+              status: 'STANDBY',
+              flowRateKw: 0,
+              protectionWarning: 'Target 95% SoC reached — charging suspended to prevent cell overvoltage',
+              aiDecisionTitle: 'Charge Target Reached (95%)',
+              aiDecisionReason: 'Safety ceiling reached at 95% SoC. Charging suspended to preserve LiFePO4 cell longevity.',
+              cellPackStatus: computeCellPackStatus(95.0, prev.cellTempC, prev.cellHealthPct),
+              lastUpdated: 'Just now'
+            };
+          }
+
+          const nextSoc = Number(Math.min(95.0, prev.stateOfChargePct + 0.3).toFixed(1));
+          const nextStored = Number(((1200 * nextSoc) / 100).toFixed(1));
+          const nextBackup = Number((nextStored / 152).toFixed(1));
+          const nextTemp = Number(Math.min(26.2, prev.cellTempC + 0.02).toFixed(1));
+
+          return {
+            ...prev,
+            stateOfChargePct: nextSoc,
+            currentStoredKwh: nextStored,
+            estimatedBackupHours: nextBackup,
+            cellTempC: nextTemp,
+            flowRateKw: 85.0,
+            operatingMode: 'charging',
+            status: 'CHARGING',
+            cellPackStatus: computeCellPackStatus(nextSoc, nextTemp, prev.cellHealthPct),
+            lastUpdated: 'Just now'
+          };
+        }
+
+        // 2. If DISCHARGE mode is active
+        if (prev.dispatchMode === 'DISCHARGE' && prev.operatingMode === 'discharging') {
+          if (prev.stateOfChargePct <= 10.0) {
+            return {
+              ...prev,
+              stateOfChargePct: 10.0,
+              currentStoredKwh: 120.0,
+              operatingMode: 'idle',
+              status: 'STANDBY',
+              flowRateKw: 0,
+              protectionWarning: 'Emergency reserve protection active',
+              aiDecisionTitle: 'Emergency Reserve Protection Active',
+              aiDecisionReason: 'Critical reserve threshold (10%) active. BESS locked in standby to protect mission-critical loads.',
+              cellPackStatus: 'CRITICAL',
+              lastUpdated: 'Just now'
+            };
+          }
+
+          if (prev.stateOfChargePct <= 20.0) {
+            return {
+              ...prev,
+              stateOfChargePct: 20.0,
+              currentStoredKwh: 240.0,
+              operatingMode: 'idle',
+              status: 'STANDBY',
+              flowRateKw: 0,
+              protectionWarning: 'Low SOC — discharge limited',
+              aiDecisionTitle: 'Critical Reserve Protection Active',
+              aiDecisionReason: 'Low SOC (<=20%) — discharge limited to preserve emergency backup for critical facilities.',
+              cellPackStatus: computeCellPackStatus(20.0, prev.cellTempC, prev.cellHealthPct),
+              lastUpdated: 'Just now'
+            };
+          }
+
+          const nextSoc = Number(Math.max(20.0, prev.stateOfChargePct - 0.3).toFixed(1));
+          const nextStored = Number(((1200 * nextSoc) / 100).toFixed(1));
+          const nextBackup = Number((nextStored / 152).toFixed(1));
+          const nextTemp = Number(Math.min(26.8, prev.cellTempC + 0.02).toFixed(1));
+
+          return {
+            ...prev,
+            stateOfChargePct: nextSoc,
+            currentStoredKwh: nextStored,
+            estimatedBackupHours: nextBackup,
+            cellTempC: nextTemp,
+            flowRateKw: -88.0,
+            operatingMode: 'discharging',
+            status: 'DISCHARGING',
+            cellPackStatus: computeCellPackStatus(nextSoc, nextTemp, prev.cellHealthPct),
+            lastUpdated: 'Just now'
+          };
+        }
+
+        // 3. If AUTO mode
+        if (prev.dispatchMode === 'AUTO') {
+          const nextTemp = prev.cellTempC > 24.2 ? Number((prev.cellTempC - 0.02).toFixed(1)) : 24.2;
+          return {
+            ...prev,
+            flowRateKw: 0,
+            operatingMode: 'idle',
+            status: 'IDLE',
+            cellTempC: nextTemp,
+            cellPackStatus: computeCellPackStatus(prev.stateOfChargePct, nextTemp, prev.cellHealthPct),
+            lastUpdated: 'Just now'
+          };
+        }
+
+        return prev;
+      });
+    }, 2500);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const runSimulationScenario = (params: SimulationParams): SimulationResult => {
     return calculateSimulation(params);
@@ -361,6 +597,7 @@ export const EcoFluxProvider: React.FC<{ children: ReactNode }> = ({ children })
         sendCopilotQuery,
         updateCampusSettings,
         setBatteryModeOverride,
+        setBessDispatchMode,
         runSimulationScenario,
         toasts,
         addToast,

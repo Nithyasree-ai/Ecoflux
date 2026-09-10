@@ -77,7 +77,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }
           </span>
           <span className="flex items-center gap-1.5">
             <BatteryCharging className="w-3.5 h-3.5 text-cyan-400" />
-            BESS: <strong className="text-white">{battery.operatingMode.toUpperCase()} ({battery.stateOfChargePct}%)</strong>
+            BESS: <strong className="text-white">
+              {battery.operatingMode === 'charging'
+                ? `CHARGING (+${battery.flowRateKw} kW)`
+                : battery.operatingMode === 'discharging'
+                ? `DISCHARGING (${battery.flowRateKw} kW)`
+                : 'IDLE (0 kW)'}
+            </strong>
           </span>
           <span className="hidden md:flex items-center gap-1.5 text-slate-400">
             <TrendingUp className="w-3.5 h-3.5 text-rose-400" />
