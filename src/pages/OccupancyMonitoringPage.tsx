@@ -58,6 +58,8 @@ export const OccupancyMonitoringPage: React.FC = () => {
   const isFacilityAnomalous = !isAllSelected && (activeFacility?.anomalyDetected || activeFacility?.anomalyStatus === 'warning' || activeFacility?.anomalyStatus === 'alert');
   const hostABuilding = buildings.find(b => b.code === 'HOST-A');
   const isHostAAnomalous = hostABuilding?.status === 'warning' || hostABuilding?.status === 'alert';
+  const loadDifference = activeFacility ? Number((activeFacility.powerDraw - activeFacility.baseLoad).toFixed(1)) : 0;
+  const pctDeviation = (activeFacility && activeFacility.baseLoad > 0) ? Math.round((loadDifference / activeFacility.baseLoad) * 100) : 0;
 
   // Active AI recommendation for selected facility
   const facilityRec = recommendations.find(r => 
@@ -184,15 +186,15 @@ export const OccupancyMonitoringPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/40">
-                  CRITICAL ANOMALY: {activeFacility?.code}
+                  ENERGY ANOMALY: {activeFacility?.code}
                 </span>
-                <span className="text-xs text-rose-300 font-mono font-bold">Wasted Energy: $17.10/day</span>
+                <span className="text-xs text-rose-300 font-mono font-bold">Wasted Energy: ${activeFacility?.wastedEnergyCost ? activeFacility.wastedEnergyCost.toFixed(2) : '0.00'}/day</span>
               </div>
               <h3 className="text-base font-bold text-white mt-1">
-                High power draw ({activeFacility?.powerDraw} kW) vs low occupancy ({activeFacility?.occupancy}%)
+                Energy anomaly detected in {activeFacility?.name}
               </h3>
               <p className="text-xs text-slate-300 mt-0.5 leading-relaxed max-w-2xl">
-                Base load: {activeFacility?.baseLoad} kW | Current draw: {activeFacility?.powerDraw} kW (+24% deviation). Suspected hot water circulation pump running unthrottled and common lounge AC units on manual override during lecture hours.
+                Occupancy: <strong className="text-white">{activeFacility?.occupancy}%</strong> | Power draw: <strong className="text-rose-400">{activeFacility?.powerDraw} kW</strong> | Expected / base load: <strong className="text-slate-200">{activeFacility?.baseLoad} kW</strong> | Difference: <strong className="text-rose-300">+{loadDifference} kW (+{pctDeviation}%)</strong>. Suspected domestic hot water recirculation pumps running unthrottled and common lounge AC units on manual override during lecture hours.
               </p>
             </div>
           </div>
@@ -203,7 +205,7 @@ export const OccupancyMonitoringPage: React.FC = () => {
             onClick={() => applyRecommendation(facilityRec?.id || 'rec-04')}
             className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs shadow-[0_0_20px_rgba(244,63,94,0.3)] transition-all shrink-0 self-end md:self-center flex items-center gap-1.5 cursor-pointer"
           >
-            <span>Apply Load Shedding</span>
+            <span>{facilityRec?.title || 'Apply Load Shedding'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

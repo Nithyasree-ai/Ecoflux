@@ -414,7 +414,11 @@ export const OccupancyEnergyChart: React.FC<OccupancyEnergyChartProps> = ({ sele
               Active Focus: <strong className="text-white">{selectedPoint.name}</strong> • X: <strong className="text-cyan-300">{selectedPoint.occupancy}%</strong> • Y: <strong className={selectedPoint.status === 'warning' ? 'text-rose-400' : 'text-emerald-400'}>{selectedPoint.energy} kW</strong>
             </span>
           ) : (
-            <span className="text-rose-400 font-mono">1 Anomaly flagged: Hostel Block A (29.5% occ @ 71.4 kW)</span>
+            <span className={buildings.some(b => b.status === 'warning' || b.status === 'alert') ? 'text-rose-400 font-mono' : 'text-emerald-400 font-mono'}>
+              {buildings.find(b => b.status === 'warning' || b.status === 'alert') 
+                ? `1 Anomaly flagged: ${buildings.find(b => b.status === 'warning' || b.status === 'alert')?.name} (${buildings.find(b => b.status === 'warning' || b.status === 'alert')?.occupancyPct}% occ @ ${buildings.find(b => b.status === 'warning' || b.status === 'alert')?.currentDemandKw} kW)`
+                : '✓ All 8 campus facilities operating within standard correlation envelope'}
+            </span>
           )}
         </div>
       </div>
