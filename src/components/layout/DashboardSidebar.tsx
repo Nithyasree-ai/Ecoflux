@@ -78,7 +78,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onCl
                 <Zap className="w-4 h-4 text-black fill-black" />
               </div>
               <span className="font-extrabold text-lg tracking-wider text-white">
-                ECO<span className="text-emerald-400">FLUX</span>
+                ECO<span className="text-emerald-400">FLEX</span>
               </span>
             </NavLink>
             <button

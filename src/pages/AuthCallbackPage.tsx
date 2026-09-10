@@ -62,7 +62,7 @@ export const AuthCallbackPage: React.FC = () => {
         {/* Brand & Sync Title */}
         <div>
           <h2 className="text-2xl font-extrabold tracking-wider text-white">
-            ECO<span className="text-emerald-400">FLUX</span>
+            ECO<span className="text-emerald-400">FLEX</span>
           </h2>
           <p className="text-sm font-semibold text-emerald-300 mt-2 font-mono flex items-center justify-center gap-1.5">
             <Sparkles className="w-4 h-4 text-emerald-400 animate-spin" />

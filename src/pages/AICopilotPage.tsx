@@ -48,7 +48,7 @@ export const AICopilotPage: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
             <Bot className="w-7 h-7 text-cyan-400" />
-            <span>EcoFlux Energy Copilot</span>
+            <span>EcoFlex Energy Copilot</span>
           </h1>
           <p className="text-sm text-slate-400 mt-1">
             Ask me anything about your campus energy. Specialized telemetry intelligence and actionable facility controls.

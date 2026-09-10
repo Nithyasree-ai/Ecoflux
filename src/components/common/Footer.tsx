@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
                 <Zap className="w-5 h-5 text-black fill-black" />
               </div>
               <span className="font-bold text-xl tracking-wider text-white">
-                ECO<span className="text-emerald-400">FLUX</span>
+                ECO<span className="text-emerald-400">FLEX</span>
               </span>
             </Link>
             <p className="text-slate-400 max-w-sm leading-relaxed text-sm">
@@ -57,7 +57,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-emerald-500/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <p>© {new Date().getFullYear()} ECOFLUX Systems Inc. Built for Green Campus Sustainability & Hackathon Presentation.</p>
+          <p>© {new Date().getFullYear()} ECOFLEX Systems Inc. Built for Green Campus Sustainability & Hackathon Presentation.</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 text-slate-400">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />

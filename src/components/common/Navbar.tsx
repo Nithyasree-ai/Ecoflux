@@ -28,7 +28,7 @@ export const Navbar: React.FC = () => {
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-xl tracking-wider text-white flex items-center gap-1.5">
-                ECO<span className="text-emerald-400">FLUX</span>
+                ECO<span className="text-emerald-400">FLEX</span>
                 <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                   Campus
                 </span>

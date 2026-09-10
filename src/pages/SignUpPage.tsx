@@ -53,7 +53,7 @@ export const SignUpPage: React.FC = () => {
               <Zap className="w-5 h-5 text-black fill-black" />
             </div>
             <span className="font-extrabold text-xl tracking-wider text-white">
-              ECO<span className="text-emerald-400">FLUX</span>
+              ECO<span className="text-emerald-400">FLEX</span>
             </span>
           </Link>
           <h2 className="text-2xl font-bold text-white">Create Campus Account</h2>

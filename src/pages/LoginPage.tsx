@@ -54,7 +54,7 @@ export const LoginPage: React.FC = () => {
                 <Zap className="w-5 h-5 text-black fill-black" />
               </div>
               <span className="font-extrabold text-2xl tracking-wider text-white">
-                ECO<span className="text-emerald-400">FLUX</span>
+                ECO<span className="text-emerald-400">FLEX</span>
               </span>
             </Link>
 
@@ -88,7 +88,7 @@ export const LoginPage: React.FC = () => {
           <div className="mb-6">
             <h3 className="text-2xl font-bold text-white">Sign In</h3>
             <p className="text-xs text-slate-400 mt-1">
-              Enter your credentials to access the EcoFlux campus hub.
+              Enter your credentials to access the EcoFlex campus hub.
             </p>
           </div>
 
@@ -161,7 +161,7 @@ export const LoginPage: React.FC = () => {
                 <span>Authenticating with Supabase...</span>
               ) : (
                 <>
-                  <span>Log In to EcoFlux</span>
+                  <span>Log In to EcoFlex</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

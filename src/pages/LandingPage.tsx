@@ -40,11 +40,12 @@ export const LandingPage: React.FC = () => {
             {/* Tag Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold shadow-[0_0_20px_rgba(16,185,129,0.2)]">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>SMART ENERGY MANAGEMENT FOR GREEN CAMPUSES</span>
+              <span>ECOFLEX • SMART ENERGY MANAGEMENT FOR GREEN CAMPUSES</span>
             </div>
 
             {/* Title */}
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight">
+              <span className="block text-gradient-emerald text-4xl sm:text-5xl md:text-6xl font-black mb-3 tracking-wider">ECOFLEX</span>
               <span className="block text-white">Turn Campus Energy Into</span>
               <span className="text-gradient-emerald">Intelligent Action.</span>
             </h1>
@@ -172,7 +173,7 @@ export const LandingPage: React.FC = () => {
               </span>
               <h4 className="text-base font-bold text-white mt-3">Unified Telemetry</h4>
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                EcoFlux connects building meters, rooftop solar generation, BESS storage, and sensor occupancy in real time.
+                EcoFlex connects building meters, rooftop solar generation, BESS storage, and sensor occupancy in real time.
               </p>
             </div>
 
@@ -295,7 +296,7 @@ export const LandingPage: React.FC = () => {
               to="/dashboard"
               className="px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-base shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all transform hover:-translate-y-0.5"
             >
-              Enter EcoFlux Dashboard
+              Enter EcoFlex Dashboard
             </Link>
             <Link
               to="/features"
