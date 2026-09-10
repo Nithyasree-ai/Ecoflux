@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-dark: #050a08;
+    --card-bg: #0c1813;
+    --card-border: rgba(16, 185, 129, 0.14);
+    --emerald-glow: rgba(16, 185, 129, 0.35);
+    --lime-glow: rgba(74, 222, 128, 0.35);
+    --cyan-glow: rgba(6, 182, 212, 0.35);
+  }
+
+  body {
+    background-color: #050a08;
+    color: #f1f5f9;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Custom Clean Scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #070d0a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.25);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.45);
+  }
+}
+
+@layer components {
+  /* Premium Glassmorphic Bento Cards */
+  .bento-card {
+    background: linear-gradient(135deg, rgba(14, 26, 21, 0.85) 0%, rgba(9, 17, 14, 0.95) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(16, 185, 129, 0.14);
+    border-radius: 1rem;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bento-card:hover {
+    border-color: rgba(52, 211, 153, 0.35);
+    box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.2);
+  }
+
+  .bento-card-glow {
+    position: relative;
+    overflow: hidden;
+  }
+  .bento-card-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.6), transparent);
+  }
+
+  /* Badge Styles */
+  .badge-emerald {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #34d399;
+  }
+  
+  .badge-cyan {
+    background: rgba(6, 182, 212, 0.12);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: #22d3ee;
+  }
+
+  .badge-lime {
+    background: rgba(74, 222, 128, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: #4ade80;
+  }
+
+  .badge-amber {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+  }
+
+  .badge-rose {
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    color: #fb7185;
+  }
+
+  /* Gradient Text */
+  .text-gradient-emerald {
+    background: linear-gradient(135deg, #ffffff 20%, #34d399 70%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-lime {
+    background: linear-gradient(135deg, #f8fafc 20%, #86efac 70%, #22c55e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-cyan {
+    background: linear-gradient(135deg, #f8fafc 20%, #67e8f9 70%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Grid background pattern */
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+  }
+
+  .bg-radial-gradient {
+    background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15) 0%, rgba(5, 10, 8, 0) 70%);
+  }
+}
+
+/* Fluid animations */
+@keyframes wave {
+  0% {
+    transform: translateX(0) translateZ(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-25%) translateZ(0) scaleY(1.08);
+  }
+  100% {
+    transform: translateX(-50%) translateZ(0) scaleY(1);
+  }
+}
+
+.liquid-wave {
+  animation: wave 6s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
