@@ -8,7 +8,8 @@ import {
   UserProfile, 
   CopilotMessage,
   SimulationParams,
-  SimulationResult 
+  SimulationResult,
+  BessCentralState
 } from '../types';
 import { 
   INITIAL_BUILDINGS, 
@@ -49,6 +50,8 @@ interface EcoFluxContextType {
   // Data
   buildings: Building[];
   battery: BatteryState;
+  bessState: BessCentralState;
+  selectedFacility: string;
   solarKw: number;
   totalDemandKw: number;
   renewablePct: number;
@@ -66,6 +69,7 @@ interface EcoFluxContextType {
   clearAllNotifications: () => void;
   sendCopilotQuery: (query: string) => void;
   updateCampusSettings: (newSettings: Partial<CampusSettings>) => void;
+  setSelectedFacility: (code: string) => void;
   setBatteryModeOverride: (mode: 'charging' | 'discharging' | 'idle') => void;
   setBessDispatchMode: (mode: 'CHARGE' | 'DISCHARGE' | 'AUTO') => void;
   runSimulationScenario: (params: SimulationParams) => SimulationResult;
@@ -97,6 +101,7 @@ export const EcoFluxProvider: React.FC<{ children: ReactNode }> = ({ children })
   });
 
   const [solarKw] = useState<number>(318);
+  const [selectedFacility, setSelectedFacility] = useState<string>('ALL');
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>(() => {
     const saved = localStorage.getItem('ecoflux_recommendations');
     return saved ? JSON.parse(saved) : INITIAL_RECOMMENDATIONS;
@@ -176,6 +181,25 @@ export const EcoFluxProvider: React.FC<{ children: ReactNode }> = ({ children })
   const totalDemandKw = Math.round(buildings.reduce((acc, b) => acc + b.currentDemandKw, 0));
   const renewablePct = Math.min(99, Math.round((solarKw / totalDemandKw) * 100));
   const campusGreenScore = 86; // Overall weighted campus score
+  
+  // Single central BESS state conforming to specification
+  const bessState: BessCentralState = {
+    soc: battery.stateOfChargePct,
+    storedEnergy: battery.currentStoredKwh,
+    activeFlow: battery.flowRateKw,
+    backupTime: battery.estimatedBackupHours,
+    packHealth: battery.cellHealthPct,
+    packTemperature: battery.cellTempC,
+    cellHealth: battery.cellHealthPct,
+    cycles: battery.cyclesCompleted,
+    dispatchMode: battery.dispatchMode,
+    status: battery.status,
+    cellPackStatus: battery.cellPackStatus,
+    aiDecisionTitle: battery.aiDecisionTitle,
+    aiDecisionReason: battery.aiDecisionReason,
+    capacityKwh: battery.capacityKwh,
+    protectionWarning: battery.protectionWarning
+  };
 
   // Auth Handlers
   const login = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
@@ -581,6 +605,9 @@ export const EcoFluxProvider: React.FC<{ children: ReactNode }> = ({ children })
         logout,
         buildings,
         battery,
+        bessState,
+        selectedFacility,
+        setSelectedFacility,
         solarKw,
         totalDemandKw,
         renewablePct,

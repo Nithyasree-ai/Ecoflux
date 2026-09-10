@@ -17,10 +17,10 @@ import {
 } from 'lucide-react';
 
 export const SolarGenerationPage: React.FC = () => {
-  const { buildings, solarKw, totalDemandKw, renewablePct } = useEcoFlux();
+  const { buildings, solarKw, totalDemandKw, renewablePct, selectedFacility: globalFacility, setSelectedFacility } = useEcoFlux();
 
-  // Selected facility state - defaults to ACAD on dashboard load
-  const [selectedFacility, setSelectedFacility] = useState<string>('ACAD');
+  // Selected facility state - defaults to ACAD if ALL is selected at campus level
+  const selectedFacility = globalFacility === 'ALL' ? 'ACAD' : globalFacility;
 
   // Active facility profile, telemetry, and structured facility list
   const activeFacility = FACILITY_SOLAR_PROFILES[selectedFacility] || FACILITY_SOLAR_PROFILES['ACAD'];

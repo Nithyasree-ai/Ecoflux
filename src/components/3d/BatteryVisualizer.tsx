@@ -2,12 +2,24 @@ import React from 'react';
 import { useEcoFlux } from '../../lib/dataStore';
 import { Battery, Zap, Shield, Clock, Thermometer, RefreshCw, ArrowUpRight, ArrowDownRight, Sparkles, AlertTriangle } from 'lucide-react';
 
-export const BatteryVisualizer: React.FC<{ expanded?: boolean }> = ({ expanded = false }) => {
+export const BatteryVisualizer: React.FC<{ expanded?: boolean; facilityCode?: string }> = ({
+  expanded = false,
+  facilityCode = 'ALL'
+}) => {
   const { battery, setBessDispatchMode } = useEcoFlux();
 
   const isCharging = battery.operatingMode === 'charging';
   const isDischarging = battery.operatingMode === 'discharging';
   const chargePct = Math.min(100, Math.max(0, battery.stateOfChargePct));
+
+  // Contextualized AI Decision if a specific facility is being inspected
+  const contextualReason = facilityCode !== 'ALL' && !battery.protectionWarning
+    ? isCharging
+      ? `Absorbing clean rooftop solar surplus from ${facilityCode} into central BESS buffer at +${battery.flowRateKw} kW.`
+      : isDischarging
+      ? `Dispatching ${Math.abs(battery.flowRateKw)} kW from central BESS buffer to shave peak demand charges for ${facilityCode}.`
+      : `Central BESS standing by in auto-mode while monitoring ${facilityCode} load and campus grid thresholds.`
+    : battery.aiDecisionReason;
 
   return (
     <div className="bg-[#091510]/90 border border-emerald-500/20 rounded-2xl p-6 relative overflow-hidden backdrop-blur-xl" data-testid="bess-visualizer-card">
@@ -122,7 +134,7 @@ export const BatteryVisualizer: React.FC<{ expanded?: boolean }> = ({ expanded =
             </h4>
             
             <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-              {battery.aiDecisionReason}
+              {contextualReason}
             </p>
 
             {battery.protectionWarning && (

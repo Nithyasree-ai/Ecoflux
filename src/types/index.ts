@@ -76,6 +76,24 @@ export interface BatteryState {
   protectionWarning?: string;
 }
 
+export interface BessCentralState {
+  soc: number;
+  storedEnergy: number;
+  activeFlow: number;
+  backupTime: number;
+  packHealth: number;
+  packTemperature: number;
+  cellHealth: number;
+  cycles: number;
+  dispatchMode: 'CHARGE' | 'DISCHARGE' | 'AUTO';
+  status: 'CHARGING' | 'DISCHARGING' | 'IDLE' | 'STANDBY';
+  cellPackStatus: 'NORMAL' | 'WARNING' | 'CRITICAL';
+  aiDecisionTitle: string;
+  aiDecisionReason: string;
+  capacityKwh: number;
+  protectionWarning?: string;
+}
+
 export interface OccupancyTelemetry {
   buildingId: string;
   buildingName: string;
