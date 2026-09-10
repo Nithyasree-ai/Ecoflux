@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEcoFlux } from '../lib/dataStore';
 import { BentoCard } from '../components/common/BentoCard';
 import { MetricBadge } from '../components/common/MetricBadge';
 import { SolarGenerationChart } from '../components/charts/SolarGenerationChart';
+import { FACILITY_SOLAR_PROFILES } from '../data/campusData';
 import {
   Sun,
   CloudSun,
@@ -18,6 +19,12 @@ import {
 export const SolarGenerationPage: React.FC = () => {
   const { buildings, solarKw, totalDemandKw, renewablePct } = useEcoFlux();
 
+  // Selected facility state - defaults to ACAD on dashboard load
+  const [selectedFacility, setSelectedFacility] = useState<string>('ACAD');
+
+  // Active facility profile and structured facility list
+  const activeFacility = FACILITY_SOLAR_PROFILES[selectedFacility] || FACILITY_SOLAR_PROFILES['ACAD'];
+  const facilityList = Object.values(FACILITY_SOLAR_PROFILES);
   const totalSolarInstalled = buildings.reduce((acc, b) => acc + b.solarInstalledKw, 0);
 
   return (
@@ -98,15 +105,22 @@ export const SolarGenerationPage: React.FC = () => {
         <MetricBadge label="Direct Savings" value="$446.40" unit="/day" subtext="at $0.18/kWh" icon={Sun} variant="emerald" />
       </div>
 
-      {/* Main Solar Chart */}
+      {/* Main Solar Chart Connected to Selected Facility */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <BentoCard
-          title="Solar Generation Timeline & Forecast"
-          subtitle="Hourly PV production curve vs 7-day moving average"
+          title={`${activeFacility.facilityCode} Solar Generation Timeline & Forecast`}
+          subtitle={`${activeFacility.facilityName} rooftop solar generation`}
           icon={<Sun className="w-4 h-4 text-amber-400" />}
           className="lg:col-span-2"
+          action={
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                {activeFacility.capacityKw} kW Allocated ({activeFacility.pctOfTotal}%)
+              </span>
+            </div>
+          }
         >
-          <SolarGenerationChart />
+          <SolarGenerationChart facilityCode={selectedFacility} />
         </BentoCard>
 
         {/* Weather & PV Diagnostics Card */}
@@ -140,22 +154,60 @@ export const SolarGenerationPage: React.FC = () => {
         </BentoCard>
       </div>
 
-      {/* Building Rooftop Array Breakdown */}
+      {/* Building Rooftop Array Breakdown - Interactive Selection */}
       <div className="p-6 rounded-2xl bg-[#091510] border border-emerald-500/15 space-y-4">
-        <h3 className="text-base font-bold text-white">Rooftop Solar Allocation by Facility</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-base font-bold text-white">Rooftop Solar Allocation by Facility</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Click any facility below to inspect its dedicated solar generation curve and hourly telemetry.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Active Facility:</span>
+            <span className="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              {activeFacility.facilityCode} – {activeFacility.facilityName}
+            </span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {buildings.map((b) => (
-            <div key={b.id} className="p-3.5 rounded-xl bg-black/40 border border-emerald-500/10 flex items-center justify-between">
-              <div>
-                <span className="font-mono text-[10px] text-emerald-400 font-bold">{b.code}</span>
-                <span className="block font-semibold text-white text-xs mt-0.5">{b.name}</span>
-              </div>
-              <div className="text-right">
-                <span className="font-bold font-mono text-amber-300 text-sm">{b.solarInstalledKw} kW</span>
-                <span className="block text-[10px] text-slate-500">{Math.round((b.solarInstalledKw / totalSolarInstalled) * 100)}% of total</span>
-              </div>
-            </div>
-          ))}
+          {facilityList.map((f) => {
+            const isSelected = f.facilityCode === selectedFacility;
+            return (
+              <button
+                key={f.facilityCode}
+                id={`solar-facility-btn-${f.facilityCode.toLowerCase()}`}
+                type="button"
+                onClick={() => setSelectedFacility(f.facilityCode)}
+                className={`p-3.5 rounded-xl text-left transition-all duration-200 cursor-pointer border flex items-center justify-between group ${
+                  isSelected
+                    ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+                    : 'bg-black/40 border-emerald-500/10 hover:border-amber-400/50 hover:bg-black/60'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`font-mono text-xs font-bold ${isSelected ? 'text-amber-300' : 'text-emerald-400'}`}>
+                      {f.facilityCode}
+                    </span>
+                    {isSelected && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    )}
+                  </div>
+                  <span className={`block font-semibold text-xs mt-0.5 transition-colors ${isSelected ? 'text-white' : 'text-slate-300 group-hover:text-amber-200'}`}>
+                    {f.facilityName}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="font-bold font-mono text-amber-300 text-sm block">
+                    {f.capacityKw} kW
+                  </span>
+                  <span className="block text-[10px] text-slate-400">
+                    {f.pctOfTotal}% of total
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 

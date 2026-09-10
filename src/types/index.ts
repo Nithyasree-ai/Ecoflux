@@ -195,3 +195,14 @@ export interface BuildingDemandDistribution {
   occupancy?: number;
   status: BuildingStatus;
 }
+
+export interface FacilitySolarProfile {
+  facilityCode: string;
+  facilityName: string;
+  capacityKw: number;
+  pctOfTotal: number;
+  todayGeneratedKwh: number;
+  benchmarkDiffPct: number;
+  peakKw: number;
+  hourly: SolarTelemetry[];
+}

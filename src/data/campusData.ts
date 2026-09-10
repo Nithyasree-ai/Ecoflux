@@ -1,4 +1,4 @@
-import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation, BuildingDemandDistribution } from '../types';
+import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation, BuildingDemandDistribution, FacilitySolarProfile } from '../types';
 
 export const INITIAL_BUILDINGS: Building[] = [
   {
@@ -213,6 +213,174 @@ export const HOURLY_SOLAR: SolarTelemetry[] = [
   { timestamp: '18:00', timeLabel: '6 PM', generationKw: 36, historicalAvgKw: 30, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
   { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
 ];
+
+// Dedicated Solar Profiles & Telemetry for Each Campus Facility
+export const FACILITY_SOLAR_PROFILES: Record<string, FacilitySolarProfile> = {
+  ACAD: {
+    facilityCode: 'ACAD',
+    facilityName: 'Academic Block',
+    capacityKw: 95,
+    pctOfTotal: 18,
+    todayGeneratedKwh: 412,
+    benchmarkDiffPct: 11.9,
+    peakKw: 58.2,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 2.5, historicalAvgKw: 2.0, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 17.2, historicalAvgKw: 15.5, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 45.1, historicalAvgKw: 41.0, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 58.2, historicalAvgKw: 52.0, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 53.4, historicalAvgKw: 48.6, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 28.5, historicalAvgKw: 25.8, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 6.8, historicalAvgKw: 5.5, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  },
+  'CS-LAB': {
+    facilityCode: 'CS-LAB',
+    facilityName: 'Computer Science Block',
+    capacityKw: 110,
+    pctOfTotal: 21,
+    todayGeneratedKwh: 495,
+    benchmarkDiffPct: 12.5,
+    peakKw: 69.5,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 3.1, historicalAvgKw: 2.6, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 20.5, historicalAvgKw: 18.2, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 54.2, historicalAvgKw: 48.5, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 69.5, historicalAvgKw: 61.8, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 63.8, historicalAvgKw: 57.0, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 34.0, historicalAvgKw: 30.5, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 8.2, historicalAvgKw: 6.8, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  },
+  LIB: {
+    facilityCode: 'LIB',
+    facilityName: 'Central Library',
+    capacityKw: 65,
+    pctOfTotal: 13,
+    todayGeneratedKwh: 288,
+    benchmarkDiffPct: 11.4,
+    peakKw: 41.2,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 1.8, historicalAvgKw: 1.4, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 11.8, historicalAvgKw: 10.4, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 31.5, historicalAvgKw: 28.2, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 41.2, historicalAvgKw: 37.0, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 37.6, historicalAvgKw: 34.2, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 19.8, historicalAvgKw: 17.8, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 4.8, historicalAvgKw: 3.9, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  },
+  'HOST-A': {
+    facilityCode: 'HOST-A',
+    facilityName: 'Hostel Block A',
+    capacityKw: 45,
+    pctOfTotal: 9,
+    todayGeneratedKwh: 196,
+    benchmarkDiffPct: 13.1,
+    peakKw: 28.4,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 1.2, historicalAvgKw: 0.9, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 8.1, historicalAvgKw: 7.0, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 21.6, historicalAvgKw: 19.2, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 28.4, historicalAvgKw: 25.1, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 26.0, historicalAvgKw: 23.2, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 13.8, historicalAvgKw: 12.1, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 3.2, historicalAvgKw: 2.6, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  },
+  'HOST-B': {
+    facilityCode: 'HOST-B',
+    facilityName: 'Hostel Block B',
+    capacityKw: 50,
+    pctOfTotal: 10,
+    todayGeneratedKwh: 221,
+    benchmarkDiffPct: 12.0,
+    peakKw: 31.8,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 1.4, historicalAvgKw: 1.1, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 9.2, historicalAvgKw: 8.1, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 24.5, historicalAvgKw: 21.8, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 31.8, historicalAvgKw: 28.4, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 29.1, historicalAvgKw: 26.0, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 15.4, historicalAvgKw: 13.8, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 3.8, historicalAvgKw: 3.0, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  },
+  ADMIN: {
+    facilityCode: 'ADMIN',
+    facilityName: 'Administration Wing',
+    capacityKw: 35,
+    pctOfTotal: 7,
+    todayGeneratedKwh: 154,
+    benchmarkDiffPct: 11.9,
+    peakKw: 22.6,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 0.9, historicalAvgKw: 0.7, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 6.4, historicalAvgKw: 5.6, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 17.2, historicalAvgKw: 15.4, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 22.6, historicalAvgKw: 20.2, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 20.4, historicalAvgKw: 18.5, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 10.8, historicalAvgKw: 9.6, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 2.6, historicalAvgKw: 2.1, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  },
+  'ADV-LAB': {
+    facilityCode: 'ADV-LAB',
+    facilityName: 'Laboratory Block',
+    capacityKw: 80,
+    pctOfTotal: 15,
+    todayGeneratedKwh: 358,
+    benchmarkDiffPct: 12.1,
+    peakKw: 51.0,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 2.1, historicalAvgKw: 1.7, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 14.8, historicalAvgKw: 13.0, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 39.2, historicalAvgKw: 35.1, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 51.0, historicalAvgKw: 45.5, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 46.5, historicalAvgKw: 41.8, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 24.6, historicalAvgKw: 22.0, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 5.9, historicalAvgKw: 4.8, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  },
+  CAFE: {
+    facilityCode: 'CAFE',
+    facilityName: 'Campus Dining Hub',
+    capacityKw: 40,
+    pctOfTotal: 8,
+    todayGeneratedKwh: 178,
+    benchmarkDiffPct: 11.8,
+    peakKw: 25.5,
+    hourly: [
+      { timestamp: '06:00', timeLabel: '6 AM', generationKw: 1.1, historicalAvgKw: 0.8, irradianceWm2: 80, efficiencyPct: 91.0, cloudCoverPct: 5, ambientTempC: 22 },
+      { timestamp: '08:00', timeLabel: '8 AM', generationKw: 7.3, historicalAvgKw: 6.4, irradianceWm2: 340, efficiencyPct: 93.5, cloudCoverPct: 8, ambientTempC: 24 },
+      { timestamp: '10:00', timeLabel: '10 AM', generationKw: 19.5, historicalAvgKw: 17.4, irradianceWm2: 710, efficiencyPct: 94.8, cloudCoverPct: 12, ambientTempC: 27 },
+      { timestamp: '12:00', timeLabel: '12 PM', generationKw: 25.5, historicalAvgKw: 22.8, irradianceWm2: 920, efficiencyPct: 95.6, cloudCoverPct: 6, ambientTempC: 29 },
+      { timestamp: '14:00', timeLabel: '2 PM', generationKw: 23.2, historicalAvgKw: 20.9, irradianceWm2: 840, efficiencyPct: 94.2, cloudCoverPct: 10, ambientTempC: 30 },
+      { timestamp: '16:00', timeLabel: '4 PM', generationKw: 12.2, historicalAvgKw: 11.0, irradianceWm2: 450, efficiencyPct: 93.0, cloudCoverPct: 15, ambientTempC: 28 },
+      { timestamp: '18:00', timeLabel: '6 PM', generationKw: 2.9, historicalAvgKw: 2.4, irradianceWm2: 120, efficiencyPct: 90.5, cloudCoverPct: 10, ambientTempC: 26 },
+      { timestamp: '19:00', timeLabel: '7 PM', generationKw: 0, historicalAvgKw: 0, irradianceWm2: 0, efficiencyPct: 0, cloudCoverPct: 10, ambientTempC: 25 }
+    ]
+  }
+};
+
+// Facility solar data keyed by facility code (structured hourly solar curves)
+export const solarData: Record<string, SolarTelemetry[]> = {
+  ACAD: FACILITY_SOLAR_PROFILES['ACAD'].hourly,
+  'CS-LAB': FACILITY_SOLAR_PROFILES['CS-LAB'].hourly,
+  LIB: FACILITY_SOLAR_PROFILES['LIB'].hourly,
+  'HOST-A': FACILITY_SOLAR_PROFILES['HOST-A'].hourly,
+  'HOST-B': FACILITY_SOLAR_PROFILES['HOST-B'].hourly,
+  ADMIN: FACILITY_SOLAR_PROFILES['ADMIN'].hourly,
+  'ADV-LAB': FACILITY_SOLAR_PROFILES['ADV-LAB'].hourly,
+  CAFE: FACILITY_SOLAR_PROFILES['CAFE'].hourly
+};
 
 export const INITIAL_RECOMMENDATIONS: AIRecommendation[] = [
   {
