@@ -1,4 +1,4 @@
-import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation, BuildingDemandDistribution, FacilitySolarProfile, FacilityAtmosphericTelemetry } from '../types';
+import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation, BuildingDemandDistribution, FacilitySolarProfile, FacilityAtmosphericTelemetry, HeatmapPeriod, FacilityData } from '../types';
 
 export const INITIAL_BUILDINGS: Building[] = [
   {
@@ -659,3 +659,569 @@ export const INITIAL_NOTIFICATIONS = [
     actionUrl: '/energy'
   }
 ];
+
+// Centralized Heatmap Operating Periods for All Facilities
+export const FACILITY_HEATMAPS: Record<string, HeatmapPeriod[]> = {
+  ALL: [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 38,
+      demandKw: 290,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Campus awakening, facility management systems initialization'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 79,
+      demandKw: 480,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Peak lectures, computer laboratories, and administrative operations'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 68,
+      demandKw: 490,
+      status: 'anomaly',
+      statusLabel: 'Idle Discrepancy',
+      notes: 'Overall campus demand elevated; Hostel A exhibiting 24% idle excess'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 76,
+      demandKw: 512,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Afternoon academic seminars, laboratory experiments, and study halls'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 52,
+      demandKw: 430,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Library study groups & residential dining with partial academic setback'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 26,
+      demandKw: 290,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Overnight baseline load; non-essential building circuits locked'
+    }
+  ],
+  ACAD: [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 15,
+      demandKw: 32.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Pre-lecture setup and custodial corridor lighting'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 85,
+      demandKw: 88.5,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Full lecture attendance across amphitheaters & seminar halls'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 55,
+      demandKw: 64.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Staggered lunch break with solar rooftop offsetting HVAC demand'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 82,
+      demandKw: 86.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Department seminars and faculty symposiums active'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 40,
+      demandKw: 45.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Evening study groups with automated LED zoning setback'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 4,
+      demandKw: 22.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Academic block locked; essential safety and network power only'
+    }
+  ],
+  'CS-LAB': [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 25,
+      demandKw: 75.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Compute clusters active, early graduate research arrivals'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 91.1,
+      demandKw: 136.2,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'GPU compute clusters & undergraduate labs operating at maximum capacity'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 78,
+      demandKw: 120.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Continuous algorithmic sprints and machine learning model training'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 88,
+      demandKw: 134.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Full capacity software engineering and robotics simulation labs'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 62,
+      demandKw: 102.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Evening hackathons with intelligent zone-based cooling'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 12,
+      demandKw: 68.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Overnight batch rendering and server cold-aisle containment'
+    }
+  ],
+  LIB: [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 12,
+      demandKw: 24.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Archival staff check-in and digital catalog server initialization'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 68,
+      demandKw: 42.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Quiet study halls with automated daylight harvesting active'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 74.3,
+      demandKw: 46.8,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Peak midday reading density powered primarily by 65 kW rooftop solar'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 80,
+      demandKw: 48.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Reading rooms and reference cubicles fully utilized at high efficiency'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 58,
+      demandKw: 38.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Evening research students with localized LED desk luminaires'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 5,
+      demandKw: 18.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Restricted overnight access; climate control for rare book archives'
+    }
+  ],
+  'HOST-A': [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 88,
+      demandKw: 62.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Students waking up, water heaters and dining prep operating normally'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 38,
+      demandKw: 68.0,
+      status: 'anomaly',
+      statusLabel: 'Potential Waste / Anomaly',
+      notes: 'Students depart for classes, but domestic water circulation pumps remain unthrottled'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 29.5,
+      demandKw: 71.4,
+      status: 'anomaly',
+      statusLabel: 'CRITICAL ANOMALY',
+      notes: 'CRITICAL IDLE DISCREPANCY: Common lounges empty but AC manual overrides active (+24% baseline)'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 42,
+      demandKw: 66.0,
+      status: 'anomaly',
+      statusLabel: 'Potential Waste / Anomaly',
+      notes: 'Unoccupied student rooms with continuous HVAC draw during lecture hours'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 82,
+      demandKw: 64.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Students return from lectures and campus dining halls'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 95,
+      demandKw: 58.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Full residential sleep cycle; normal overnight baseline'
+    }
+  ],
+  'HOST-B': [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 84,
+      demandKw: 58.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Morning residential showers and preparation routine'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 40,
+      demandKw: 42.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Automated occupancy sensors throttled unoccupied floor HVAC'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 33.8,
+      demandKw: 52.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Balanced residential state during academic lecture hours'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 45,
+      demandKw: 46.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Partial early returns managed within energy benchmark thresholds'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 80,
+      demandKw: 56.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Evening residential study and leisure activities'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 92,
+      demandKw: 50.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Overnight residential resting baseline'
+    }
+  ],
+  ADMIN: [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 10,
+      demandKw: 18.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Pre-shift custodial preparation and network initialization'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 74.0,
+      demandKw: 39.1,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Registrar, admissions, and financial administration active at peak'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 48,
+      demandKw: 32.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Lunch hour staggered reduction with solar offset'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 70,
+      demandKw: 37.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Committee sessions and student advisory services'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 15,
+      demandKw: 22.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'End of official business hours; executive offices throttled'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 2,
+      demandKw: 14.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Building secured; emergency servers and alarm standby only'
+    }
+  ],
+  'ADV-LAB': [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 20,
+      demandKw: 92.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Cleanroom pressurization and constant-temperature incubators'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 76.6,
+      demandKw: 118.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Mass spectrometers, fume hoods, and thermal cycling units active'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 60,
+      demandKw: 108.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Automated chemical synthesis and environmental chamber runs'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 74,
+      demandKw: 116.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Advanced microscopy and bioprocessing experiments'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 42,
+      demandKw: 98.0,
+      status: 'efficient',
+      statusLabel: 'Efficient Operation',
+      notes: 'Doctoral candidate research with non-critical equipment powered down'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 8,
+      demandKw: 86.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Mandatory continuous exhaust ventilation and cryogenic specimen preservation'
+    }
+  ],
+  CAFE: [
+    {
+      period: '06:00 - 09:00',
+      label: 'Early Morning',
+      occupancyPct: 68,
+      demandKw: 54.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Campus breakfast rush, industrial steamers and dishwashers active'
+    },
+    {
+      period: '09:00 - 12:00',
+      label: 'Morning Peak',
+      occupancyPct: 25,
+      demandKw: 34.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Mid-morning prep and walk-in refrigeration holding'
+    },
+    {
+      period: '12:00 - 15:00',
+      label: 'Midday Recess',
+      occupancyPct: 76.0,
+      demandKw: 61.2,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Peak lunch crowd: commercial kitchens and ventilation running at capacity'
+    },
+    {
+      period: '15:00 - 18:00',
+      label: 'Afternoon Peak',
+      occupancyPct: 30,
+      demandKw: 38.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Afternoon break and dinner prep staging'
+    },
+    {
+      period: '18:00 - 21:00',
+      label: 'Evening Session',
+      occupancyPct: 82,
+      demandKw: 62.0,
+      status: 'high-utilization',
+      statusLabel: 'High Utilization',
+      notes: 'Campus dinner service, hot buffet wells, and dining hall lighting'
+    },
+    {
+      period: '21:00 - 06:00',
+      label: 'Night Off-Peak',
+      occupancyPct: 6,
+      demandKw: 24.0,
+      status: 'low-use',
+      statusLabel: 'Normal Low-Use',
+      notes: 'Walk-in cold storage and essential health-code ventilation only'
+    }
+  ]
+};
+
+// Centralized Facility Data Builder - Dynamically connects live building telemetry
+export const getFacilityData = (building: Building): FacilityData => {
+  const isHostA = building.code === 'HOST-A';
+  const isWarning = building.status === 'warning' || building.status === 'alert';
+  const headcount = building.currentOccupancy;
+  const powerDraw = building.currentDemandKw;
+  const energyPerPerson = headcount > 0 ? Number((powerDraw / headcount).toFixed(3)) : 0;
+  const historicalAvg = Number((building.baseLoadKw * 1.05).toFixed(1));
+
+  let anomalyTitle = 'Optimal Correlation';
+  let anomalyDesc = 'Power draw is consistent with recorded occupancy. No energy waste detected.';
+  let wastedCost = 0;
+
+  if (isHostA && isWarning) {
+    anomalyTitle = 'Critical Idle Energy Discrepancy';
+    anomalyDesc = `High energy consumption (${powerDraw} kW) detected despite low student occupancy (${building.occupancyPct}%). Power draw is 24% above historical baseline (${building.baseLoadKw} kW). Suspected domestic hot water recirculation pumps running unthrottled and common lounge AC units on manual override.`;
+    wastedCost = 17.10;
+  } else if (isWarning) {
+    anomalyTitle = 'Energy Load Discrepancy';
+    anomalyDesc = `Power consumption (${powerDraw} kW) exceeds expected envelope for current occupancy (${building.occupancyPct}%).`;
+    wastedCost = 8.50;
+  }
+
+  return {
+    code: building.code,
+    name: building.name,
+    category: building.category,
+    occupancy: building.occupancyPct,
+    capacity: building.designedOccupancy,
+    headcount: building.currentOccupancy,
+    powerDraw: building.currentDemandKw,
+    baseLoad: building.baseLoadKw,
+    greenScore: building.currentGreenScore,
+    solarAllocation: building.solarInstalledKw,
+    temperature: building.temperatureC,
+    energyPerPerson,
+    historicalAverage: historicalAvg,
+    anomalyStatus: building.status,
+    anomalyDetected: isWarning,
+    anomalyTitle,
+    anomalyDescription: anomalyDesc,
+    wastedEnergyCost: wastedCost,
+    heatmapSchedule: FACILITY_HEATMAPS[building.code] || FACILITY_HEATMAPS['ACAD']
+  };
+};
+
+export const getFacilityDataMap = (buildings: Building[]): Record<string, FacilityData> => {
+  const map: Record<string, FacilityData> = {};
+  buildings.forEach(b => {
+    map[b.code] = getFacilityData(b);
+  });
+  return map;
+};
+
+// Static initial facility dataset for reference
+export const FACILITY_DATA: Record<string, FacilityData> = getFacilityDataMap(INITIAL_BUILDINGS);
+

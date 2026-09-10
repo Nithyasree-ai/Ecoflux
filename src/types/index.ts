@@ -107,6 +107,38 @@ export interface OccupancyTelemetry {
   status: 'optimal' | 'moderate' | 'high' | 'anomaly';
 }
 
+export interface HeatmapPeriod {
+  period: string;
+  label: string;
+  occupancyPct: number;
+  demandKw: number;
+  status: 'anomaly' | 'high-utilization' | 'efficient' | 'low-use';
+  statusLabel: string;
+  notes: string;
+}
+
+export interface FacilityData {
+  code: string;
+  name: string;
+  category: string;
+  occupancy: number;
+  capacity: number;
+  headcount: number;
+  powerDraw: number;
+  baseLoad: number;
+  greenScore: number;
+  solarAllocation: number;
+  temperature: number;
+  energyPerPerson: number;
+  historicalAverage: number;
+  anomalyStatus: 'optimal' | 'normal' | 'warning' | 'alert';
+  anomalyDetected: boolean;
+  anomalyTitle?: string;
+  anomalyDescription?: string;
+  wastedEnergyCost?: number;
+  heatmapSchedule: HeatmapPeriod[];
+}
+
 export interface EnergyPredictionPoint {
   timestamp: string;
   timeLabel: string;
