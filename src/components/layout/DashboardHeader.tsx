@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Menu,
@@ -18,6 +18,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useEcoFlux } from '../../lib/dataStore';
+import { GlobalSearchModal } from './GlobalSearchModal';
 
 interface DashboardHeaderProps {
   onMenuToggle: () => void;
@@ -36,7 +37,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }
   } = useEcoFlux();
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  // Global Ctrl+K / Cmd+K listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 w-full bg-[#050a08]/90 backdrop-blur-xl border-b border-emerald-500/15">
@@ -84,10 +98,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-xs text-slate-400 w-64">
-            <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-            <span className="truncate">Search buildings, telemetry, logs...</span>
-          </div>
+          {/* Interactive Search Bar Trigger (Opens Global Search Command Palette) */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 text-xs text-slate-400 hover:text-slate-200 w-44 sm:w-64 transition-all group"
+            title="Search campus facilities, pages, telemetry (Ctrl+K)"
+          >
+            <div className="flex items-center gap-2 truncate">
+              <Search className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition-colors shrink-0" />
+              <span className="truncate">Search buildings, telemetry...</span>
+            </div>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white/5 border border-white/10 rounded group-hover:text-emerald-300">
+              <span className="text-[9px]">⌘</span>K
+            </kbd>
+          </button>
         </div>
 
         {/* Right Side: Quick Action Chips + Notifications + Profile */}
@@ -209,8 +233,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }
           </Link>
 
         </div>
-
       </div>
+
+      {/* Global Command Palette Search Modal */}
+      <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 };

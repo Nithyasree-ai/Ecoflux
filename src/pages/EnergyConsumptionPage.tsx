@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   Sliders,
-  ChevronDown
+  ChevronDown,
+  X,
+  RotateCcw
 } from 'lucide-react';
 
 export const EnergyConsumptionPage: React.FC = () => {
@@ -83,8 +85,18 @@ export const EnergyConsumptionPage: React.FC = () => {
               placeholder="Search by building name or code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-black/40 border border-emerald-500/20 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
+              className="w-full pl-9 pr-8 py-2 rounded-xl bg-black/40 border border-emerald-500/20 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           {/* Category Filter */}
@@ -143,9 +155,32 @@ export const EnergyConsumptionPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-emerald-500/10 text-slate-300">
-              {filteredBuildings.map((b) => {
-                const isWarning = b.status === 'warning';
-                return (
+              {filteredBuildings.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="p-12 text-center text-slate-400">
+                    <BuildingIcon className="w-10 h-10 text-slate-600 mx-auto mb-3 opacity-60" />
+                    <p className="text-sm font-semibold text-white">No campus facilities found</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      No buildings match "{searchQuery}" under current filters.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory('All');
+                        setStatusFilter('All');
+                      }}
+                      className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-500/25 transition-all"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Reset Filters & Search</span>
+                    </button>
+                  </td>
+                </tr>
+              ) : (
+                filteredBuildings.map((b) => {
+                  const isWarning = b.status === 'warning';
+                  return (
                   <tr key={b.id} className="hover:bg-emerald-500/5 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-2.5">
@@ -208,8 +243,9 @@ export const EnergyConsumptionPage: React.FC = () => {
                     </td>
                   </tr>
                 );
-              })}
-            </tbody>
+              })
+            )}
+          </tbody>
           </table>
         </div>
       </div>
