@@ -186,3 +186,12 @@ export interface CopilotMessage {
     route?: string;
   };
 }
+
+export interface BuildingDemandDistribution {
+  name: string;
+  fullName: string;
+  demand: number;
+  solar?: number;
+  occupancy?: number;
+  status: BuildingStatus;
+}

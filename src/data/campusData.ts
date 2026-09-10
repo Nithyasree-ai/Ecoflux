@@ -1,4 +1,4 @@
-import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation } from '../types';
+import { Building, BatteryState, EnergyTelemetry, SolarTelemetry, OccupancyTelemetry, GreenBuildingScoreItem, AIRecommendation, BuildingDemandDistribution } from '../types';
 
 export const INITIAL_BUILDINGS: Building[] = [
   {
@@ -137,6 +137,40 @@ export const INITIAL_BUILDINGS: Building[] = [
     hvacStatus: 'active',
     temperatureC: 23.8
   }
+];
+
+// Building Load Distribution Datasets for Today, Week, and Month filters
+export const todayData: BuildingDemandDistribution[] = [
+  { name: 'ACAD', fullName: 'Academic Block', demand: 88.5, solar: 95.0, occupancy: 82.5, status: 'optimal' },
+  { name: 'CS-LAB', fullName: 'Computer Science Block', demand: 136.2, solar: 110.0, occupancy: 91.1, status: 'optimal' },
+  { name: 'LIB', fullName: 'Central Library', demand: 46.8, solar: 65.0, occupancy: 74.3, status: 'optimal' },
+  { name: 'HOST-A', fullName: 'Hostel Block A', demand: 71.4, solar: 45.0, occupancy: 29.5, status: 'warning' },
+  { name: 'HOST-B', fullName: 'Hostel Block B', demand: 52.0, solar: 50.0, occupancy: 33.8, status: 'normal' },
+  { name: 'ADMIN', fullName: 'Administration Wing', demand: 39.1, solar: 35.0, occupancy: 74.0, status: 'optimal' },
+  { name: 'ADV-LAB', fullName: 'Laboratory Block', demand: 118.0, solar: 80.0, occupancy: 76.6, status: 'normal' },
+  { name: 'CAFE', fullName: 'Campus Dining Hub', demand: 61.2, solar: 40.0, occupancy: 76.0, status: 'optimal' },
+];
+
+export const weekData: BuildingDemandDistribution[] = [
+  { name: 'ACAD', fullName: 'Academic Block', demand: 82.4, solar: 91.2, occupancy: 78.0, status: 'optimal' },
+  { name: 'CS-LAB', fullName: 'Computer Science Block', demand: 124.8, solar: 104.5, occupancy: 86.4, status: 'optimal' },
+  { name: 'LIB', fullName: 'Central Library', demand: 41.5, solar: 61.8, occupancy: 69.2, status: 'optimal' },
+  { name: 'HOST-A', fullName: 'Hostel Block A', demand: 63.8, solar: 42.1, occupancy: 52.1, status: 'normal' },
+  { name: 'HOST-B', fullName: 'Hostel Block B', demand: 56.4, solar: 48.0, occupancy: 49.6, status: 'normal' },
+  { name: 'ADMIN', fullName: 'Administration Wing', demand: 35.6, solar: 33.4, occupancy: 71.2, status: 'optimal' },
+  { name: 'ADV-LAB', fullName: 'Laboratory Block', demand: 109.5, solar: 76.2, occupancy: 72.8, status: 'normal' },
+  { name: 'CAFE', fullName: 'Campus Dining Hub', demand: 57.3, solar: 38.5, occupancy: 64.5, status: 'normal' },
+];
+
+export const monthData: BuildingDemandDistribution[] = [
+  { name: 'ACAD', fullName: 'Academic Block', demand: 76.8, solar: 88.0, occupancy: 75.4, status: 'optimal' },
+  { name: 'CS-LAB', fullName: 'Computer Science Block', demand: 118.2, solar: 98.4, occupancy: 82.0, status: 'optimal' },
+  { name: 'LIB', fullName: 'Central Library', demand: 39.0, solar: 58.2, occupancy: 65.0, status: 'optimal' },
+  { name: 'HOST-A', fullName: 'Hostel Block A', demand: 58.5, solar: 40.5, occupancy: 58.4, status: 'normal' },
+  { name: 'HOST-B', fullName: 'Hostel Block B', demand: 53.2, solar: 46.2, occupancy: 54.0, status: 'normal' },
+  { name: 'ADMIN', fullName: 'Administration Wing', demand: 33.8, solar: 31.9, occupancy: 68.5, status: 'optimal' },
+  { name: 'ADV-LAB', fullName: 'Laboratory Block', demand: 104.2, solar: 73.0, occupancy: 70.1, status: 'normal' },
+  { name: 'CAFE', fullName: 'Campus Dining Hub', demand: 54.0, solar: 36.8, occupancy: 61.2, status: 'normal' },
 ];
 
 export const INITIAL_BATTERY: BatteryState = {
