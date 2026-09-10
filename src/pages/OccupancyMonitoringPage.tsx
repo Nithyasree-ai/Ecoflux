@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 export const OccupancyMonitoringPage: React.FC = () => {
-  const { buildings, selectedFacility, setSelectedFacility, applyRecommendation } = useEcoFlux();
+  const { buildings, selectedFacility, setSelectedFacility, applyRecommendation, recommendations } = useEcoFlux();
 
   // Centralized dynamic facility map (connected directly to live buildings state)
   const facilityMap = getFacilityDataMap(buildings);
@@ -55,9 +55,19 @@ export const OccupancyMonitoringPage: React.FC = () => {
     : (FACILITY_HEATMAPS[selectedFacility] || FACILITY_HEATMAPS['ACAD']);
 
   // Anomaly evaluation for the active view
-  const isHostASelected = selectedFacility === 'HOST-A';
+  const isFacilityAnomalous = !isAllSelected && (activeFacility?.anomalyDetected || activeFacility?.anomalyStatus === 'warning' || activeFacility?.anomalyStatus === 'alert');
   const hostABuilding = buildings.find(b => b.code === 'HOST-A');
   const isHostAAnomalous = hostABuilding?.status === 'warning' || hostABuilding?.status === 'alert';
+
+  // Active AI recommendation for selected facility
+  const facilityRec = recommendations.find(r => 
+    !isAllSelected && activeFacility && (
+      r.title.toLowerCase().includes(activeFacility.name.toLowerCase()) || 
+      r.title.toLowerCase().includes(activeFacility.code.toLowerCase()) ||
+      r.description.toLowerCase().includes(activeFacility.name.toLowerCase()) ||
+      r.description.toLowerCase().includes(activeFacility.code.toLowerCase())
+    )
+  );
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
@@ -164,9 +174,9 @@ export const OccupancyMonitoringPage: React.FC = () => {
             </div>
           </div>
         )
-      ) : isHostASelected && isHostAAnomalous ? (
-        // Hostel A Selected & Anomalous
-        <div className="p-5 rounded-3xl bg-gradient-to-r from-rose-950/60 via-[#170c0f] to-[#0a1511] border border-rose-500/40 backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[0_10px_30px_rgba(244,63,94,0.15)]" data-testid="anomaly-banner-host-a">
+      ) : isFacilityAnomalous ? (
+        // Anomalous Facility Selected (e.g., Hostel Block A)
+        <div className="p-5 rounded-3xl bg-gradient-to-r from-rose-950/60 via-[#170c0f] to-[#0a1511] border border-rose-500/40 backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[0_10px_30px_rgba(244,63,94,0.15)]" data-testid="anomaly-banner-selected">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-6 h-6 animate-pulse" />
@@ -174,7 +184,7 @@ export const OccupancyMonitoringPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/40">
-                  CRITICAL ANOMALY: HOST-A
+                  CRITICAL ANOMALY: {activeFacility?.code}
                 </span>
                 <span className="text-xs text-rose-300 font-mono font-bold">Wasted Energy: $17.10/day</span>
               </div>
@@ -190,7 +200,7 @@ export const OccupancyMonitoringPage: React.FC = () => {
           <button
             id="btn-apply-load-shedding-specific"
             type="button"
-            onClick={() => applyRecommendation('rec-04')}
+            onClick={() => applyRecommendation(facilityRec?.id || 'rec-04')}
             className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs shadow-[0_0_20px_rgba(244,63,94,0.3)] transition-all shrink-0 self-end md:self-center flex items-center gap-1.5 cursor-pointer"
           >
             <span>Apply Load Shedding</span>
@@ -220,18 +230,29 @@ export const OccupancyMonitoringPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end md:self-center">
-            <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold">
-              ✓ ENVELOPE VERIFIED
-            </span>
-          </div>
+          {facilityRec && facilityRec.status === 'active' ? (
+            <button
+              type="button"
+              onClick={() => applyRecommendation(facilityRec.id)}
+              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all shrink-0 self-end md:self-center flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>{facilityRec.title}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 self-end md:self-center">
+              <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold">
+                ✓ ENVELOPE VERIFIED
+              </span>
+            </div>
+          )}
         </div>
       )}
 
       {/* KPI Top Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4" data-testid="occupancy-kpi-row">
         <MetricBadge
-          label={isAllSelected ? "Average Occupancy" : "Occupancy Rate"}
+          label={isAllSelected ? "Average Occupancy" : `${activeFacility?.code} Occupancy Rate`}
           value={displayOccupancy}
           unit="%"
           subtext={isAllSelected ? "Across all 8 zones" : `${displayHeadcount} / ${displayCapacity} occupants`}
@@ -239,15 +260,15 @@ export const OccupancyMonitoringPage: React.FC = () => {
           variant="cyan"
         />
         <MetricBadge
-          label={isAllSelected ? "Total Power Draw" : "Facility Power Draw"}
+          label={isAllSelected ? "Total Power Draw" : `${activeFacility?.code} Power Draw`}
           value={displayPowerDraw}
           unit="kW"
           subtext={isAllSelected ? "Campus-wide demand" : `Base load: ${activeFacility?.baseLoad} kW`}
           icon={Zap}
-          variant={isHostASelected && isHostAAnomalous ? "rose" : "emerald"}
+          variant={isFacilityAnomalous ? "rose" : "emerald"}
         />
         <MetricBadge
-          label="Energy / Person"
+          label={isAllSelected ? "Campus Energy / Person" : `${activeFacility?.code} Energy / Person`}
           value={displayEnergyPerPerson.toFixed(3)}
           unit="kW/cap"
           subtext={displayEnergyPerPerson > 0.4 ? "Exceeds optimal benchmark" : "Optimal benchmark: 0.28"}
@@ -255,12 +276,12 @@ export const OccupancyMonitoringPage: React.FC = () => {
           variant={displayEnergyPerPerson > 0.4 ? "rose" : "emerald"}
         />
         <MetricBadge
-          label={isAllSelected ? "Anomalous Zones" : "Facility Status"}
-          value={isAllSelected ? `${anomalyCount}` : isHostASelected && isHostAAnomalous ? "ANOMALY" : "OPTIMAL"}
+          label={isAllSelected ? "Anomalous Zones" : `${activeFacility?.code} Status`}
+          value={isAllSelected ? `${anomalyCount}` : isFacilityAnomalous ? "ANOMALY" : "OPTIMAL"}
           unit={isAllSelected ? "facility" : ""}
-          subtext={isAllSelected ? (anomalyCount > 0 ? "Hostel Block A flagged" : "All zones optimal") : isHostASelected && isHostAAnomalous ? "+24% idle discrepancy" : "Within target envelope"}
+          subtext={isAllSelected ? (anomalyCount > 0 ? "Hostel Block A flagged" : "All zones optimal") : isFacilityAnomalous ? "+24% idle discrepancy" : "Within target envelope"}
           icon={AlertTriangle}
-          variant={isAllSelected ? (anomalyCount > 0 ? "rose" : "emerald") : isHostASelected && isHostAAnomalous ? "rose" : "emerald"}
+          variant={isAllSelected ? (anomalyCount > 0 ? "rose" : "emerald") : isFacilityAnomalous ? "rose" : "emerald"}
         />
       </div>
 
@@ -305,7 +326,7 @@ export const OccupancyMonitoringPage: React.FC = () => {
             <div className="p-3.5 rounded-xl bg-black/40 border border-emerald-500/15 space-y-2">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-slate-300">Live Occupancy Rate</span>
-                <strong className={isHostASelected && isHostAAnomalous ? 'text-rose-400 text-sm' : 'text-emerald-400 text-sm'}>
+                <strong className={isFacilityAnomalous ? 'text-rose-400 text-sm' : 'text-emerald-400 text-sm'}>
                   {displayOccupancy}%
                 </strong>
               </div>
@@ -313,7 +334,7 @@ export const OccupancyMonitoringPage: React.FC = () => {
               <div className="w-full bg-black/60 h-3 rounded-full overflow-hidden border border-white/10 p-0.5">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    isHostASelected && isHostAAnomalous
+                    isFacilityAnomalous
                       ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'
                       : displayOccupancy > 80
                       ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.4)]'
@@ -333,7 +354,7 @@ export const OccupancyMonitoringPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-2.5 font-mono text-xs">
               <div className="p-2.5 rounded-xl bg-black/40 border border-emerald-500/10">
                 <span className="text-[10px] text-slate-400 block">Power Draw</span>
-                <strong className={isHostASelected && isHostAAnomalous ? 'text-rose-400 text-sm' : 'text-emerald-400 text-sm'}>
+                <strong className={isFacilityAnomalous ? 'text-rose-400 text-sm' : 'text-emerald-400 text-sm'}>
                   {displayPowerDraw} kW
                 </strong>
               </div>

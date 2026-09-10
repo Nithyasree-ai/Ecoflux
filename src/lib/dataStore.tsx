@@ -306,6 +306,14 @@ export const EcoFluxProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (target.id === 'rec-01') {
       setBuildings(prev => prev.map(b => b.code === 'ACAD' ? { ...b, currentDemandKw: 76.0, hvacStatus: 'eco' } : b));
     }
+    // If Lab heavy diagnostics shifted
+    if (target.id === 'rec-02') {
+      setBuildings(prev => prev.map(b => b.code === 'ADV-LAB' ? { ...b, currentDemandKw: 104.0 } : b));
+    }
+    // If Library daylight harvesting
+    if (target.id === 'rec-05') {
+      setBuildings(prev => prev.map(b => b.code === 'LIB' ? { ...b, currentDemandKw: 42.0 } : b));
+    }
 
     addToast('success', 'Action Applied', `${target.title} executed. Estimated saving: $${target.estimatedDollarSaving}/day.`);
   };
